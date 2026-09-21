@@ -1,0 +1,18 @@
+{
+  "id": "tiagos-toolkit-stage",
+  "title": "Tiago's Toolkit: Stage",
+  "description": "Um palco para cenas sem mapa: um fundo que enche o ecrã da mesa toda e, por cima dele, as personagens que estão na conversa. Para quando a cena precisa de um sítio, não de uma grelha de combate.",
+  "version": "0.1.0",
+  "compatibility": { "minimum": "13", "verified": "14" },
+  "authors": [{ "name": "Th1rdo" }],
+  "esmodules": ["scripts/main.js"],
+  "styles": ["styles/palco.css"],
+  "languages": [
+    { "lang": "pt-BR", "name": "Português (Brasil)", "path": "lang/pt-BR.json" },
+    { "lang": "en", "name": "English", "path": "lang/en.json" }
+  ],
+  "socket": false,
+  "url": "https://github.com/Th1rdo/tiagos-toolkit-stage",
+  "manifest": "https://github.com/Th1rdo/tiagos-toolkit-stage/releases/latest/download/module.json",
+  "download": "https://github.com/Th1rdo/tiagos-toolkit-stage/releases/download/v0.1.0/tiagos-toolkit-stage.zip"
+}

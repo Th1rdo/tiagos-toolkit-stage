@@ -1,0 +1,217 @@
+/* ============================================================================
+   Tiago's Toolkit: Stage
+   Um fundo que enche o ecrã e as personagens de pé em cima dele. Para o jogador
+   não há nada para clicar — é uma imagem, e é esse o ponto.
+   ========================================================================== */
+
+:root {
+  --stage-acento: #C98B3C;
+  --stage-tinta: #F2F0EA;
+  --stage-papel: #16161B;
+  --stage-cinza: #86847F;
+  --stage-fio: rgba(242, 240, 234, 0.14);
+  --stage-curva: cubic-bezier(.2, .7, .2, 1);
+  --stage-mono: "Courier New", ui-monospace, monospace;
+}
+
+/* ------------------------------------------------------------------- palco */
+#stage-palco {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 700ms var(--stage-curva);
+  background: #07070A;
+  overflow: hidden;
+}
+#stage-palco.stage-visivel { opacity: 1; }
+
+.stage-fundo { position: absolute; inset: 0; }
+.stage-fundo-img {
+  width: 100%; height: 100%; display: block;
+  object-fit: cover; object-position: center;
+}
+.stage-fundo[data-ajuste="conter"] .stage-fundo-img { object-fit: contain; }
+
+/* uma deriva muito lenta: a imagem deixa de parecer um cartaz pregado */
+.stage-fundo.stage-deriva .stage-fundo-img {
+  animation: stage-deriva 72s ease-in-out infinite alternate;
+  transform-origin: center;
+}
+@keyframes stage-deriva {
+  from { transform: scale(1.04) translate3d(-0.8%, -0.6%, 0); }
+  to   { transform: scale(1.09) translate3d(0.8%, 0.6%, 0); }
+}
+
+/* a vinheta empurra o olhar para o meio, onde estão as pessoas */
+#stage-palco::after {
+  content: "";
+  position: absolute; inset: 0; pointer-events: none;
+  box-shadow: inset 0 0 260px 60px rgba(0, 0, 0, 0.55);
+}
+
+/* ------------------------------------------------------------------ elenco */
+.stage-elenco { position: absolute; inset: 0; }
+
+.stage-personagem {
+  position: absolute;
+  margin: 0;
+  height: 62vh;                       /* o inline manda; isto é só o arranque */
+  transition: opacity 220ms var(--stage-curva), filter 220ms var(--stage-curva),
+              height 220ms var(--stage-curva);
+  will-change: transform;
+}
+.stage-personagem img {
+  height: 100%; width: auto; display: block;
+  filter: drop-shadow(0 18px 26px rgba(0, 0, 0, 0.6));
+  user-select: none;
+}
+.stage-personagem figcaption {
+  position: absolute; left: 50%; bottom: -2px;
+  transform: translate(-50%, 100%);
+  font-family: var(--stage-mono);
+  font-size: 12px; letter-spacing: 0.22em; text-transform: uppercase;
+  color: var(--stage-tinta);
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.9);
+  white-space: nowrap;
+}
+.stage-personagem[data-foco="1"] figcaption::before {
+  content: ""; display: block; width: 26px; height: 1px;
+  background: var(--stage-acento); margin: 0 auto 7px;
+}
+
+.stage-a-entrar { animation: stage-entrar 320ms var(--stage-curva) both; }
+@keyframes stage-entrar {
+  from { opacity: 0; translate: 0 14px; }
+}
+
+/* o mestre compõe em direto; o jogador não tem nada para agarrar */
+#stage-palco[data-mestre="1"] .stage-personagem { pointer-events: auto; cursor: grab; }
+#stage-palco[data-mestre="1"] .stage-personagem:hover img { filter: drop-shadow(0 18px 26px rgba(0, 0, 0, 0.6)) drop-shadow(0 0 2px var(--stage-acento)); }
+.stage-personagem.stage-a-arrastar { cursor: grabbing; transition: none; }
+
+/* ------------------------------------------------------- marca do mestre */
+.stage-marca {
+  position: absolute; top: 18px; left: 50%; transform: translateX(-50%);
+  font-family: var(--stage-mono); font-size: 9.5px; letter-spacing: 0.24em; text-transform: uppercase;
+  padding: 5px 14px; border: 1px solid var(--stage-fio);
+  background: rgba(7, 7, 10, 0.8); color: var(--stage-cinza);
+  pointer-events: none;
+}
+.stage-marca[data-ar="1"] { color: #E0A85A; border-color: rgba(201, 139, 60, 0.6); }
+.stage-marca[data-ar="1"]::before {
+  content: ""; display: inline-block; width: 6px; height: 6px; border-radius: 50%;
+  background: #C0392B; margin-right: 9px; vertical-align: middle;
+}
+
+/* com o palco no ar, um fio vermelho no topo do ecrã do mestre: a mesa está a ver */
+#stage-palco[data-mestre="1"].stage-no-ar::before {
+  content: "";
+  position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg, transparent, rgba(192, 57, 43, 0.9), transparent);
+  pointer-events: none;
+  z-index: 2;
+}
+
+/* ------------------------------------------- a interface da mesa cala-se */
+body.stage-ativo:not(.stage-sem-escurecer) #ui-left,
+body.stage-ativo:not(.stage-sem-escurecer) #ui-top,
+body.stage-ativo:not(.stage-sem-escurecer) #ui-bottom,
+body.stage-ativo:not(.stage-sem-escurecer) #ui-right,
+body.stage-ativo:not(.stage-sem-escurecer) #players,
+body.stage-ativo:not(.stage-sem-escurecer) #hotbar {
+  opacity: 0.5;
+  transition: opacity 400ms var(--stage-curva);
+}
+body.stage-ativo #ui-left:hover,
+body.stage-ativo #ui-top:hover,
+body.stage-ativo #ui-bottom:hover,
+body.stage-ativo #ui-right:hover,
+body.stage-ativo #players:hover,
+body.stage-ativo #hotbar:hover { opacity: 1; }
+
+/* ------------------------------------------------------------------ painel */
+#stage-painel {
+  position: fixed;
+  width: 316px;
+  box-sizing: border-box;
+  background: var(--stage-papel);
+  border: 1px solid var(--stage-fio);
+  color: var(--stage-tinta);
+  z-index: 64;
+  box-shadow: 0 10px 34px rgba(0, 0, 0, 0.55);
+  font-family: var(--font-primary, sans-serif);
+  backdrop-filter: none;
+}
+
+.stage-cabecalho {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 11px 14px; border-bottom: 1px solid var(--stage-fio);
+  cursor: grab;
+}
+.stage-cabecalho:active { cursor: grabbing; }
+.stage-titulo { font-family: var(--stage-mono); font-size: 10px; letter-spacing: 0.24em; text-transform: uppercase; color: var(--stage-acento); }
+
+.stage-seccao { padding: 13px 14px; border-bottom: 1px solid rgba(242, 240, 234, 0.08); display: flex; flex-direction: column; gap: 9px; }
+.stage-rotulo { font-family: var(--stage-mono); font-size: 9px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--stage-cinza); }
+.stage-linha { display: flex; align-items: center; gap: 9px; }
+.stage-coluna { display: flex; flex-direction: column; gap: 6px; min-width: 0; flex-grow: 1; }
+.stage-nome-ficheiro { font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.stage-opcoes { display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: 11px; color: var(--stage-cinza); }
+.stage-opcoes label { display: inline-flex; align-items: center; gap: 5px; }
+
+#stage-painel .stage-miniatura {
+  width: 62px; height: 40px; flex: none; padding: 0; cursor: pointer;
+  background: rgba(242, 240, 234, 0.05); border: 1px solid var(--stage-fio);
+  display: grid; place-items: center; overflow: hidden;
+}
+#stage-painel .stage-miniatura img { width: 100%; height: 100%; object-fit: cover; }
+#stage-painel .stage-miniatura.stage-pequena { width: 34px; height: 34px; }
+#stage-painel .stage-miniatura.stage-pequena img { object-fit: contain; }
+#stage-painel .stage-miniatura:hover { border-color: var(--stage-acento); }
+.stage-vazio { color: var(--stage-cinza); font-size: 16px; }
+
+.stage-membro { padding: 3px 0; }
+.stage-membro.stage-com-foco .stage-miniatura { border-color: var(--stage-acento); box-shadow: 0 0 0 1px var(--stage-acento); }
+#stage-painel input[type="text"] {
+  flex-grow: 1; min-width: 0;
+  background: rgba(242, 240, 234, 0.05); border: 1px solid transparent; border-radius: 2px;
+  color: var(--stage-tinta); font-family: inherit; font-size: 12px; padding: 4px 7px;
+}
+#stage-painel input[type="text"]:hover { border-color: var(--stage-fio); }
+#stage-painel input[type="text"]:focus { border-color: var(--stage-acento); outline: none; }
+
+#stage-painel .stage-icone {
+  width: 26px; height: 26px; flex: none; display: grid; place-items: center;
+  background: none; border: none; cursor: pointer; padding: 0; color: var(--stage-cinza);
+}
+#stage-painel .stage-icone:hover { color: var(--stage-acento); }
+#stage-painel .stage-icone svg { width: 13px; height: 13px; }
+#stage-painel .stage-icone svg path { stroke: currentColor; stroke-width: 1.3; fill: none; }
+
+#stage-painel .stage-adicionar {
+  align-self: flex-start; background: none; border: none; cursor: pointer; padding: 2px 0; width: auto;
+  font-family: var(--stage-mono); font-size: 9.5px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--stage-cinza);
+}
+#stage-painel .stage-adicionar:hover { color: var(--stage-acento); }
+.stage-dica { font-size: 11.5px; line-height: 1.5; color: var(--stage-cinza); }
+
+.stage-rodape { padding: 13px 14px; display: flex; align-items: center; gap: 10px; }
+#stage-painel .stage-ar {
+  flex-grow: 1; cursor: pointer; padding: 9px 12px; width: auto;
+  background: rgba(242, 240, 234, 0.06); border: 1px solid var(--stage-fio); color: var(--stage-tinta);
+  font-family: var(--stage-mono); font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase;
+}
+#stage-painel .stage-ar:hover { border-color: var(--stage-acento); }
+#stage-painel .stage-ar.stage-ligado { background: rgba(192, 57, 43, 0.16); border-color: rgba(192, 57, 43, 0.65); color: #E8B4AE; }
+#stage-painel .stage-ligacao {
+  background: none; border: none; cursor: pointer; padding: 0; width: auto;
+  font-family: var(--stage-mono); font-size: 9px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--stage-cinza);
+}
+#stage-painel .stage-ligacao:hover { color: #C26B6E; }
+
+@media (prefers-reduced-motion: reduce) {
+  #stage-palco, .stage-personagem { transition: none !important; }
+  .stage-fundo.stage-deriva .stage-fundo-img, .stage-a-entrar { animation: none !important; }
+}

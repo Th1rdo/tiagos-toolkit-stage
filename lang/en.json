@@ -1,0 +1,36 @@
+{
+  "STAGE.Palco": "Stage",
+  "STAGE.Fundo": "Backdrop",
+  "STAGE.SemFundo": "No backdrop chosen",
+  "STAGE.Cobrir": "Fill",
+  "STAGE.Conter": "Fit",
+  "STAGE.Deriva": "Slow drift",
+  "STAGE.Elenco": "Cast",
+  "STAGE.ElencoVazio": "Drag an actor onto the stage, or use the + below.",
+  "STAGE.Personagem": "character",
+  "STAGE.NomePersonagem": "Name (shown with focus)",
+  "STAGE.NoAr": "Live",
+  "STAGE.PreVisualizacao": "Preview · the table cannot see this",
+
+  "STAGE.Ferramentas.Palco": "Stage",
+  "STAGE.Atalho.Painel": "Open or close the stage panel",
+  "STAGE.Atalho.Ar": "Put the stage live, or take it down",
+
+  "STAGE.Acoes.Mostrar": "Show to the table",
+  "STAGE.Acoes.Tirar": "Take it down",
+  "STAGE.Acoes.EscolherFundo": "Choose the backdrop",
+  "STAGE.Acoes.Foco": "Give this character focus",
+  "STAGE.Acoes.Espelhar": "Flip",
+  "STAGE.Acoes.Remover": "Remove from stage",
+  "STAGE.Acoes.Limpar": "Clear the stage",
+  "STAGE.Acoes.Fechar": "Close",
+
+  "STAGE.Avisos.SoMestre": "Only the GM can change the stage.",
+  "STAGE.Avisos.SemArte": "That actor has no art to put on stage.",
+  "STAGE.Avisos.ConfirmarLimpar": "Clear the backdrop and cast of this scene?",
+
+  "STAGE.Config.Escurecer": "Dim the interface while the stage is live",
+  "STAGE.Config.EscurecerHint": "Foundry's panels drop in volume while the scene plays, and come back as soon as the mouse reaches them.",
+  "STAGE.Config.Aliviar": "Ease the map underneath",
+  "STAGE.Config.AliviarHint": "With the stage live the map is hidden but still being drawn. This slows it down and gives the GPU back to the table."
+}

@@ -1,0 +1,36 @@
+{
+  "STAGE.Palco": "Palco",
+  "STAGE.Fundo": "Fundo",
+  "STAGE.SemFundo": "Sem fundo escolhido",
+  "STAGE.Cobrir": "Encher",
+  "STAGE.Conter": "Caber",
+  "STAGE.Deriva": "Deriva lenta",
+  "STAGE.Elenco": "Elenco",
+  "STAGE.ElencoVazio": "Arraste um ator para o palco, ou use o + aqui em baixo.",
+  "STAGE.Personagem": "personagem",
+  "STAGE.NomePersonagem": "Nome (aparece com o foco)",
+  "STAGE.NoAr": "No ar",
+  "STAGE.PreVisualizacao": "Pré-visualização · a mesa não vê",
+
+  "STAGE.Ferramentas.Palco": "Palco",
+  "STAGE.Atalho.Painel": "Abrir ou fechar o painel do palco",
+  "STAGE.Atalho.Ar": "Pôr o palco no ar, ou tirá-lo",
+
+  "STAGE.Acoes.Mostrar": "Mostrar à mesa",
+  "STAGE.Acoes.Tirar": "Tirar do ar",
+  "STAGE.Acoes.EscolherFundo": "Escolher o fundo",
+  "STAGE.Acoes.Foco": "Dar o foco a esta personagem",
+  "STAGE.Acoes.Espelhar": "Espelhar",
+  "STAGE.Acoes.Remover": "Tirar do palco",
+  "STAGE.Acoes.Limpar": "Limpar o palco",
+  "STAGE.Acoes.Fechar": "Fechar",
+
+  "STAGE.Avisos.SoMestre": "Só o mestre pode mexer no palco.",
+  "STAGE.Avisos.SemArte": "Esse ator não tem arte para pôr em cena.",
+  "STAGE.Avisos.ConfirmarLimpar": "Limpar o fundo e o elenco desta cena?",
+
+  "STAGE.Config.Escurecer": "Escurecer a interface com o palco no ar",
+  "STAGE.Config.EscurecerHint": "Os painéis do Foundry descem de volume enquanto a cena passa, e voltam ao normal mal o rato lá chegue.",
+  "STAGE.Config.Aliviar": "Aliviar o mapa por baixo",
+  "STAGE.Config.AliviarHint": "Com o palco no ar o mapa não se vê, mas continua a ser desenhado. Isto baixa-lhe o ritmo e devolve GPU à mesa."
+}
