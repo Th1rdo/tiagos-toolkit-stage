@@ -95,3 +95,51 @@ export function nomeDoFicheiro(caminho = "") {
   const base = decodeURIComponent(String(caminho).split("?")[0].split("/").pop() ?? "");
   return base.replace(/\.[^.]+$/, "").replace(/[-_]+/g, " ").trim();
 }
+
+// ------------------------------------------------------------------ biblioteca
+
+/**
+ * O retrato de um palco, para comparar dois.
+ *
+ * O `foco` fica de fora de propósito: dar o foco a quem está a falar é uma coisa
+ * do momento, não uma alteração da cena. Sem isto, o painel diria «alterada»
+ * sempre que o mestre trocasse de interlocutor.
+ */
+export function instantaneo(p) {
+  return JSON.stringify({
+    fundo: p?.fundo ?? "",
+    ajuste: ajusteValido(p?.ajuste),
+    deriva: !!p?.deriva,
+    elenco: (p?.elenco ?? []).map(({ foco, ...resto }) => resto)
+  });
+}
+
+export const igualAoGuardado = (palco, guardada) => !!guardada && instantaneo(palco) === instantaneo(guardada);
+
+/** O que um cartão da biblioteca mostra. */
+export function resumoDaCena(cena) {
+  return {
+    id: cena?.id,
+    nome: (cena?.nome ?? "").trim() || "Sem nome",
+    fundo: cena?.fundo ?? "",
+    quantos: (cena?.elenco ?? []).length
+  };
+}
+
+/** Procura por nome — e também pelo nome de quem está em cena. */
+export function filtrarCenas(cenas = [], termo = "") {
+  const t = termo.trim().toLowerCase();
+  if (!t) return [...cenas];
+  return cenas.filter(c =>
+    (c.nome ?? "").toLowerCase().includes(t) ||
+    (c.elenco ?? []).some(p => (p.nome ?? "").toLowerCase().includes(t)));
+}
+
+/** Um nome que não se repete: «Casa de Mero», «Casa de Mero 2»… */
+export function nomeLivre(cenas = [], desejado = "Cena") {
+  const base = desejado.trim() || "Cena";
+  const usados = new Set(cenas.map(c => (c.nome ?? "").trim()));
+  if (!usados.has(base)) return base;
+  for (let i = 2; i < 999; i++) if (!usados.has(`${base} ${i}`)) return `${base} ${i}`;
+  return `${base} ${Date.now()}`;
+}

@@ -20,7 +20,12 @@ globalThis.ui = { notifications: { warn() {}, info() {} }, controls: { render() 
 globalThis.game = {
   user: { isGM: true, id: "gm" },
   i18n: { localize: (k) => k, format: (k) => k },
-  settings: { get: () => true, register() {} },
+  settings: {
+    guardado: { "tiagos-toolkit-stage.biblioteca": { cenas: [] } },
+    get(m, k) { return k === "biblioteca" ? this.guardado[`${m}.${k}`] : true; },
+    async set(m, k, v) { this.guardado[`${m}.${k}`] = v; },
+    register() {}
+  },
   scenes: { current: cena },
   keybindings: { register() {} }
 };
@@ -121,6 +126,41 @@ flags["tiagos-toolkit-stage"].palco.visivel = false;
 palcoEmCena.desenhar();
 await espera(600);
 eVerdade("fora do ar, o jogador deixa de ver", raiz().hidden || !raiz().classList.contains("stage-visivel"));
+
+// ------------------------------------------------------------------ biblioteca
+game.user.isGM = true;
+palcoEmCena.compor(true);
+const bib = await import("../../scripts/biblioteca.js");
+
+const cenaGuardada = await bib.guardarComo("Casa de Mero");
+eIgual("guardou a cena com o nome dado", cenaGuardada?.nome, "Casa de Mero");
+eIgual("a cena ficou na biblioteca", bib.cenas().length, 1);
+eIgual("o palco sabe de onde veio", bib.origemAtual(), cenaGuardada.id);
+eVerdade("acabado de guardar, não há alterações", bib.semAlteracoes());
+
+// dar o foco não conta como alterar; mexer conta
+await focarPersonagem(ana.id);
+eVerdade("dar o foco não marca a cena como alterada", bib.semAlteracoes());
+const guardadoAntes = JSON.stringify(bib.cena(cenaGuardada.id).elenco);
+const { moverPersonagem } = await import("../../scripts/dados.js");
+await moverPersonagem(ana.id, 0.1, 0.9);
+eVerdade("mexer numa personagem marca como alterada", !bib.semAlteracoes());
+eIgual("e o que está guardado NÃO mudou", JSON.stringify(bib.cena(cenaGuardada.id).elenco), guardadoAntes);
+
+// carregar repõe a cena guardada e continua a dar para mexer
+await bib.carregar(cenaGuardada.id, { noAr: true });
+palcoEmCena.desenhar();
+await espera();
+eVerdade("carregar repõe a cena tal como foi guardada", bib.semAlteracoes());
+eVerdade("carregar com play põe no ar", palco().visivel);
+eIgual("ninguém traz foco de trás", palco().elenco.filter(p => p.foco).length, 0);
+await moverPersonagem(palco().elenco[0].id, 0.2, 0.9);
+eVerdade("depois de carregar ainda se mexe", !bib.semAlteracoes());
+eIgual("e a guardada continua intacta", JSON.stringify(bib.cena(cenaGuardada.id).elenco), guardadoAntes);
+
+// atualizar a guardada com o que está no palco
+await bib.atualizarGuardada();
+eVerdade("atualizar apanha o que está no palco", bib.semAlteracoes());
 
 globalThis.__r = r;
 document.getElementById("saida").textContent =

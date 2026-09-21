@@ -5,7 +5,8 @@ import {
   focarPersonagem, limparPalco
 } from "./dados.js";
 import { palcoEmCena } from "./palco.js";
-import { nomeDoFicheiro } from "./logica.js";
+import { nomeDoFicheiro, igualAoGuardado } from "./logica.js";
+import * as bib from "./biblioteca.js";
 
 /**
  * O painel do mestre.
@@ -69,10 +70,16 @@ class Controlo {
   desenhar() {
     const p = palco();
     const esc = foundry.utils.escapeHTML;
+    const origem = bib.origemAtual();
+    const guardada = origem ? bib.cena(origem) : null;
+    const alterada = guardada ? !igualAoGuardado(p, guardada) : false;
 
     this.#el.innerHTML = `
       <header class="stage-cabecalho" data-accao="pegar">
         <span class="stage-titulo">${game.i18n.localize("STAGE.Palco")}</span>
+        ${guardada ? `<span class="stage-origem" title="${game.i18n.localize("STAGE.Biblioteca.NoPalco")}">
+          ${esc(guardada.nome)}${alterada ? `<span class="stage-pinta" title="${game.i18n.localize("STAGE.Biblioteca.Alterada")}"></span>` : ""}
+        </span>` : ""}
         <button type="button" class="stage-icone" data-accao="fechar" aria-label="${game.i18n.localize("STAGE.Acoes.Fechar")}">
           <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4 L12 12 M12 4 L4 12"></path></svg>
         </button>
@@ -119,8 +126,15 @@ class Controlo {
         <button type="button" class="stage-ar ${p.visivel ? "stage-ligado" : ""}" data-accao="ar">
           ${game.i18n.localize(p.visivel ? "STAGE.Acoes.Tirar" : "STAGE.Acoes.Mostrar")}
         </button>
-        <button type="button" class="stage-ligacao" data-accao="limpar">${game.i18n.localize("STAGE.Acoes.Limpar")}</button>
-      </footer>`;
+      </footer>
+
+      <div class="stage-barra-guardar">
+        <button type="button" class="stage-ligacao" data-accao="biblioteca">${game.i18n.localize("STAGE.Biblioteca.Titulo")}</button>
+        <button type="button" class="stage-ligacao" data-accao="guardar-cena">
+          ${game.i18n.localize(alterada ? "STAGE.Biblioteca.Atualizar" : "STAGE.Biblioteca.Guardar")}
+        </button>
+        <button type="button" class="stage-ligacao stage-limpar" data-accao="limpar">${game.i18n.localize("STAGE.Acoes.Limpar")}</button>
+      </div>`;
 
     this.#el.hidden = false;
   }
@@ -142,6 +156,19 @@ class Controlo {
       case "espelhar": return espelharPersonagem(id);
       case "remover": return removerPersonagem(id);
       case "ar": return alternarVisivel();
+      case "biblioteca": return Hooks.callAll(`${MODULE_ID}.biblioteca`);
+      case "guardar-cena": {
+        // se veio da biblioteca e foi mexida, guardar é atualizar; senão, é nova
+        const origem = bib.origemAtual();
+        const guardada = origem ? bib.cena(origem) : null;
+        if (guardada && !igualAoGuardado(palco(), guardada)) {
+          await bib.atualizarGuardada();
+        } else {
+          await bib.guardarComo("");
+        }
+        Hooks.callAll(`${MODULE_ID}.biblioteca-mudou`);
+        return this.desenhar();
+      }
       case "limpar": {
         const ok = await foundry.applications.api.DialogV2.confirm({
           window: { title: game.i18n.localize("STAGE.Acoes.Limpar") },

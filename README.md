@@ -31,6 +31,28 @@ pode fazer é deixar-te em dúvida sobre o que os jogadores estão a ver.
    Sem ator, o **+** escolhe uma imagem qualquer.
 3. **Mostrar à mesa** — o botão grande. `Ctrl+Shift+R` faz o mesmo.
 
+## Guardar cenas
+
+Preparaste antes da sessão a casa do Mero com duas pessoas lá dentro? **Guarda**. Depois é um clique no
+cartão e está no ar.
+
+A **biblioteca** (`Ctrl+Shift+B`, ou o botão da fita de filme) mostra as cenas guardadas em cartões com a
+imagem de fundo — um mestre lembra-se de uma cena pela imagem, não pelo nome. Procura por nome da cena
+**ou pelo nome de quem está nela**.
+
+| | |
+|---|---|
+| **clicar no cartão** | põe a cena no ar |
+| **lápis** | carrega para compor, sem ir ao ar |
+| **nome** | muda o nome |
+
+O que é carregado é uma **cópia**: a partir daí arrastas, espelhas e acrescentas gente à vontade sem
+estragar o que está guardado. Quando quiseres que o original apanhe as mudanças, o painel passa a dizer
+**Atualizar** — e o cartão da cena que está no palco fica marcado com um ponto enquanto houver alterações
+por guardar.
+
+Dar o foco a quem está a falar **não** conta como alteração: é uma coisa do momento, não da cena.
+
 ## Compor em direto
 
 Com o painel aberto, mexes nas personagens em cima do próprio palco:

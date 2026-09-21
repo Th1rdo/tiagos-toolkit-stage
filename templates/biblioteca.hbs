@@ -1,0 +1,58 @@
+{{!-- ApplicationV2 exige UMA raiz por parte: está tudo dentro desta secção --}}
+<section class="stage-biblioteca">
+
+  <header class="stage-bib-topo">
+    <input type="search" class="stage-procura" data-campo="procura" value="{{procura}}"
+           placeholder="{{localize 'STAGE.Biblioteca.Procurar'}}" spellcheck="false" autocomplete="off">
+    <span class="stage-bib-conta">{{quantas}}</span>
+  </header>
+
+  {{#if montado}}
+  <div class="stage-bib-atual">
+    <div class="stage-bib-atual-texto">
+      <span class="stage-bib-rotulo">{{localize 'STAGE.Biblioteca.NoPalco'}}</span>
+      <span class="stage-bib-nome">{{montado.nome}}</span>
+      {{#if montado.alterado}}<span class="stage-bib-alterado">{{localize 'STAGE.Biblioteca.Alterada'}}</span>{{/if}}
+    </div>
+    {{#if montado.alterado}}
+    <button type="button" class="stage-bib-accao" data-action="atualizar">{{localize 'STAGE.Biblioteca.Atualizar'}}</button>
+    {{/if}}
+  </div>
+  {{/if}}
+
+  <div class="stage-grelha">
+    {{#each cenas}}
+    <article class="stage-cartao {{#if esta}}stage-cartao-atual{{/if}}" data-id="{{id}}">
+      <button type="button" class="stage-cartao-thumb" data-action="tocar" data-id="{{id}}"
+              title="{{localize 'STAGE.Biblioteca.Tocar'}}">
+        {{#if fundo}}<img src="{{fundo}}" alt="">{{else}}<span class="stage-sem-imagem"></span>{{/if}}
+        <span class="stage-cartao-play">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5 L19 12 L8 19 Z"></path></svg>
+        </span>
+        {{#if quantos}}<span class="stage-cartao-elenco">{{quantos}}</span>{{/if}}
+      </button>
+      <div class="stage-cartao-fundo">
+        <span class="stage-cartao-nome" data-action="renomear" data-id="{{id}}" title="{{localize 'STAGE.Biblioteca.Renomear'}}">{{nome}}</span>
+        <span class="stage-cartao-botoes">
+          <button type="button" class="stage-icone" data-action="carregar" data-id="{{id}}" title="{{localize 'STAGE.Biblioteca.Compor'}}">
+            <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 13 L3 10.5 L11 2.5 L13.5 5 L5.5 13 Z"></path></svg>
+          </button>
+          <button type="button" class="stage-icone" data-action="duplicar" data-id="{{id}}" title="{{localize 'STAGE.Biblioteca.Duplicar'}}">
+            <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M5 5 L13 5 L13 13 L5 13 Z M3 11 L3 3 L11 3"></path></svg>
+          </button>
+          <button type="button" class="stage-icone" data-action="apagar" data-id="{{id}}" title="{{localize 'STAGE.Biblioteca.Apagar'}}">
+            <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4 L12 12 M12 4 L4 12"></path></svg>
+          </button>
+        </span>
+      </div>
+    </article>
+    {{else}}
+    <p class="stage-bib-vazia">{{localize 'STAGE.Biblioteca.Vazia'}}</p>
+    {{/each}}
+  </div>
+
+  <footer class="stage-bib-rodape">
+    <button type="button" class="stage-bib-guardar" data-action="guardar">{{localize 'STAGE.Biblioteca.Guardar'}}</button>
+  </footer>
+
+</section>

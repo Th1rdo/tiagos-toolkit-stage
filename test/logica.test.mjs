@@ -90,3 +90,43 @@ test("nome legível a partir do ficheiro", () => {
   assert.equal(nomeDoFicheiro("assets/npc/velho_do_farol.webp"), "velho do farol");
   assert.equal(nomeDoFicheiro(""), "");
 });
+
+// ------------------------------------------------------------------ biblioteca
+import { instantaneo, igualAoGuardado, resumoDaCena, filtrarCenas, nomeLivre } from "../scripts/logica.js";
+
+const guardada = { id: "g1", nome: "Casa de Mero", fundo: "casa.webp", ajuste: "cobrir", deriva: true, elenco: [ana, rui] };
+
+test("dar o foco a quem fala não conta como alterar a cena", () => {
+  const comFoco = { ...guardada, elenco: [{ ...ana, foco: true }, rui] };
+  assert.equal(igualAoGuardado(comFoco, guardada), true);
+});
+
+test("mexer numa personagem conta como alterar", () => {
+  const movida = { ...guardada, elenco: [{ ...ana, x: 0.1 }, rui] };
+  assert.equal(igualAoGuardado(movida, guardada), false);
+});
+
+test("trocar o fundo conta como alterar", () => {
+  assert.equal(igualAoGuardado({ ...guardada, fundo: "outra.webp" }, guardada), false);
+  assert.equal(igualAoGuardado(guardada, null), false, "sem original não há comparação");
+  assert.equal(typeof instantaneo(guardada), "string");
+});
+
+test("o cartão mostra nome, fundo e quantos estão em cena", () => {
+  assert.deepEqual(resumoDaCena(guardada), { id: "g1", nome: "Casa de Mero", fundo: "casa.webp", quantos: 2 });
+  assert.equal(resumoDaCena({}).nome, "Sem nome");
+});
+
+test("a procura também encontra pelo nome de quem está na cena", () => {
+  const cenas = [guardada, { id: "g2", nome: "Deserto", elenco: [] }];
+  assert.deepEqual(filtrarCenas(cenas, "casa").map(c => c.id), ["g1"]);
+  assert.deepEqual(filtrarCenas(cenas, "rui").map(c => c.id), ["g1"]);
+  assert.deepEqual(filtrarCenas(cenas, "").map(c => c.id), ["g1", "g2"]);
+});
+
+test("nomes repetidos ganham número em vez de se atropelarem", () => {
+  const cenas = [{ nome: "Taberna" }, { nome: "Taberna 2" }];
+  assert.equal(nomeLivre(cenas, "Taberna"), "Taberna 3");
+  assert.equal(nomeLivre(cenas, "Porto"), "Porto");
+  assert.equal(nomeLivre([], ""), "Cena");
+});

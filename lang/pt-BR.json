@@ -11,11 +11,9 @@
   "STAGE.NomePersonagem": "Nome (aparece com o foco)",
   "STAGE.NoAr": "No ar",
   "STAGE.PreVisualizacao": "Pré-visualização · a mesa não vê",
-
   "STAGE.Ferramentas.Palco": "Palco",
   "STAGE.Atalho.Painel": "Abrir ou fechar o painel do palco",
   "STAGE.Atalho.Ar": "Pôr o palco no ar, ou tirá-lo",
-
   "STAGE.Acoes.Mostrar": "Mostrar à mesa",
   "STAGE.Acoes.Tirar": "Tirar do ar",
   "STAGE.Acoes.EscolherFundo": "Escolher o fundo",
@@ -24,13 +22,27 @@
   "STAGE.Acoes.Remover": "Tirar do palco",
   "STAGE.Acoes.Limpar": "Limpar o palco",
   "STAGE.Acoes.Fechar": "Fechar",
-
   "STAGE.Avisos.SoMestre": "Só o mestre pode mexer no palco.",
   "STAGE.Avisos.SemArte": "Esse ator não tem arte para pôr em cena.",
   "STAGE.Avisos.ConfirmarLimpar": "Limpar o fundo e o elenco desta cena?",
-
   "STAGE.Config.Escurecer": "Escurecer a interface com o palco no ar",
   "STAGE.Config.EscurecerHint": "Os painéis do Foundry descem de volume enquanto a cena passa, e voltam ao normal mal o rato lá chegue.",
   "STAGE.Config.Aliviar": "Aliviar o mapa por baixo",
-  "STAGE.Config.AliviarHint": "Com o palco no ar o mapa não se vê, mas continua a ser desenhado. Isto baixa-lhe o ritmo e devolve GPU à mesa."
+  "STAGE.Config.AliviarHint": "Com o palco no ar o mapa não se vê, mas continua a ser desenhado. Isto baixa-lhe o ritmo e devolve GPU à mesa.",
+  "STAGE.CenaNova": "Cena sem nome",
+  "STAGE.Atalho.Biblioteca": "Abrir a biblioteca de cenas",
+  "STAGE.Biblioteca.Titulo": "Biblioteca",
+  "STAGE.Biblioteca.Procurar": "Procurar por cena ou por quem está nela…",
+  "STAGE.Biblioteca.Vazia": "Ainda não guardou nenhuma cena. Monte um palco e carregue em Guardar.",
+  "STAGE.Biblioteca.Guardar": "Guardar a cena",
+  "STAGE.Biblioteca.Atualizar": "Atualizar",
+  "STAGE.Biblioteca.Tocar": "Pôr esta cena no ar",
+  "STAGE.Biblioteca.Compor": "Carregar para compor",
+  "STAGE.Biblioteca.Renomear": "Mudar o nome",
+  "STAGE.Biblioteca.Duplicar": "Duplicar",
+  "STAGE.Biblioteca.Apagar": "Apagar",
+  "STAGE.Biblioteca.NoPalco": "No palco",
+  "STAGE.Biblioteca.Alterada": "alterada",
+  "STAGE.Biblioteca.Confirmar": "Confirmar",
+  "STAGE.Avisos.ConfirmarApagar": "Apagar a cena guardada «{nome}»? O palco montado fica como está."
 }

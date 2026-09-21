@@ -11,11 +11,9 @@
   "STAGE.NomePersonagem": "Name (shown with focus)",
   "STAGE.NoAr": "Live",
   "STAGE.PreVisualizacao": "Preview · the table cannot see this",
-
   "STAGE.Ferramentas.Palco": "Stage",
   "STAGE.Atalho.Painel": "Open or close the stage panel",
   "STAGE.Atalho.Ar": "Put the stage live, or take it down",
-
   "STAGE.Acoes.Mostrar": "Show to the table",
   "STAGE.Acoes.Tirar": "Take it down",
   "STAGE.Acoes.EscolherFundo": "Choose the backdrop",
@@ -24,13 +22,27 @@
   "STAGE.Acoes.Remover": "Remove from stage",
   "STAGE.Acoes.Limpar": "Clear the stage",
   "STAGE.Acoes.Fechar": "Close",
-
   "STAGE.Avisos.SoMestre": "Only the GM can change the stage.",
   "STAGE.Avisos.SemArte": "That actor has no art to put on stage.",
   "STAGE.Avisos.ConfirmarLimpar": "Clear the backdrop and cast of this scene?",
-
   "STAGE.Config.Escurecer": "Dim the interface while the stage is live",
   "STAGE.Config.EscurecerHint": "Foundry's panels drop in volume while the scene plays, and come back as soon as the mouse reaches them.",
   "STAGE.Config.Aliviar": "Ease the map underneath",
-  "STAGE.Config.AliviarHint": "With the stage live the map is hidden but still being drawn. This slows it down and gives the GPU back to the table."
+  "STAGE.Config.AliviarHint": "With the stage live the map is hidden but still being drawn. This slows it down and gives the GPU back to the table.",
+  "STAGE.CenaNova": "Untitled scene",
+  "STAGE.Atalho.Biblioteca": "Open the scene library",
+  "STAGE.Biblioteca.Titulo": "Library",
+  "STAGE.Biblioteca.Procurar": "Search by scene, or by who is in it…",
+  "STAGE.Biblioteca.Vazia": "No scenes saved yet. Set a stage and press Save.",
+  "STAGE.Biblioteca.Guardar": "Save the scene",
+  "STAGE.Biblioteca.Atualizar": "Update",
+  "STAGE.Biblioteca.Tocar": "Put this scene live",
+  "STAGE.Biblioteca.Compor": "Load to compose",
+  "STAGE.Biblioteca.Renomear": "Rename",
+  "STAGE.Biblioteca.Duplicar": "Duplicate",
+  "STAGE.Biblioteca.Apagar": "Delete",
+  "STAGE.Biblioteca.NoPalco": "On stage",
+  "STAGE.Biblioteca.Alterada": "changed",
+  "STAGE.Biblioteca.Confirmar": "Confirm",
+  "STAGE.Avisos.ConfirmarApagar": "Delete the saved scene “{nome}”? The stage stays as it is."
 }
