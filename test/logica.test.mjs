@@ -53,7 +53,10 @@ test("a âncora é nos pés: grande e pequena assentam no mesmo chão", () => {
   assert.equal(s.top, "97%");
   assert.equal(s.transform, "translate(-50%, -100%)");
   assert.equal(s.altura, "60vh");
-  assert.equal(estiloDaPersonagem({ ...ana, espelhado: true }).transform, "translate(-50%, -100%) scaleX(-1)");
+  // espelhar vira a imagem e deixa a figura (e o nome) direitos
+  assert.equal(estiloDaPersonagem({ ...ana, espelhado: true }).transform, "translate(-50%, -100%)");
+  assert.equal(estiloDaPersonagem({ ...ana, espelhado: true }).espelho, "scaleX(-1)");
+  assert.equal(estiloDaPersonagem(ana).espelho, "none");
 });
 
 test("com foco na mesa, quem não fala recua sem desaparecer", () => {

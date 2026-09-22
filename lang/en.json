@@ -44,5 +44,7 @@
   "STAGE.Biblioteca.NoPalco": "On stage",
   "STAGE.Biblioteca.Alterada": "changed",
   "STAGE.Biblioteca.Confirmar": "Confirm",
-  "STAGE.Avisos.ConfirmarApagar": "Delete the saved scene “{nome}”? The stage stays as it is."
+  "STAGE.Avisos.ConfirmarApagar": "Delete the saved scene “{nome}”? The stage stays as it is.",
+  "STAGE.Avisos.OutraCena": "This stage is on “{aqui}”, but the players are on “{la}”. They won't see it.",
+  "STAGE.EmPausa": "game paused"
 }

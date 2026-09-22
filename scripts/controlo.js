@@ -67,7 +67,25 @@ class Controlo {
     palcoEmCena.compor(false);
   }
 
+  /**
+   * Redesenha sem estorvar: se o mestre está a escrever o nome de alguém, esse
+   * campo volta com o cursor no mesmo sítio. Sem isto, cada gravação trazia um
+   * painel novo e o cursor desaparecia a meio da palavra.
+   */
   desenhar() {
+    const focado = document.activeElement?.closest?.("#stage-painel") ? document.activeElement : null;
+    const marca = focado ? { campo: focado.dataset.campo, id: focado.dataset.id, valor: focado.value, pos: focado.selectionStart } : null;
+    this.#desenharConteudo();
+    if (!marca?.campo) return;
+    const seletor = marca.id ? `[data-campo="${marca.campo}"][data-id="${marca.id}"]` : `[data-campo="${marca.campo}"]`;
+    const campo = this.#el.querySelector(seletor);
+    if (!campo) return;
+    if (campo.type === "text") campo.value = marca.valor;   // o que ainda não foi gravado não se perde
+    campo.focus();
+    if (marca.pos != null && campo.setSelectionRange) campo.setSelectionRange(marca.pos, marca.pos);
+  }
+
+  #desenharConteudo() {
     const p = palco();
     const esc = foundry.utils.escapeHTML;
     const origem = bib.origemAtual();

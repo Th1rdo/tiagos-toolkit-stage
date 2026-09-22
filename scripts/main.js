@@ -152,4 +152,16 @@ Hooks.once("ready", () => {
   log("pronto");
 });
 
-Hooks.on("canvasReady", () => redesenhar());
+/**
+ * Mudar de cena redesenha o canvas e o Foundry repõe o ritmo do ticker. Com o
+ * palco no ar voltamos a abrandá-lo — sem reler o valor atual como «original»,
+ * que era a armadilha: guardava-se o próprio abrandamento e o mapa ficava a
+ * 5 fps para sempre depois da cena.
+ */
+// a pausa esconde-se com o palco no ar, por isso a marca do mestre tem de a mostrar
+Hooks.on("pauseGame", () => palcoEmCena.desenhar());
+
+Hooks.on("canvasReady", () => {
+  if (canvasGuardado !== null && canvas?.app?.ticker) canvas.app.ticker.maxFPS = 5;
+  redesenhar();
+});

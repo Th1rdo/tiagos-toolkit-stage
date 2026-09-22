@@ -55,16 +55,20 @@ const avaliar = (expression) => new Promise(r => {
 });
 
 let resultados = null;
-for (let i = 0; i < 25 && !resultados; i++) {
+// a bancada tem esperas de propósito (entradas, gravações adiadas): dá-se-lhe tempo
+for (let i = 0; i < 75 && !resultados; i++) {
   await esperar(400);
   resultados = await avaliar("globalThis.__r ?? null");
 }
+
+// o erro lê-se ANTES de fechar a ligação: depois de fechada, a pergunta ficava
+// à espera de uma resposta que nunca vinha, e o corredor ficava pendurado
+const erro = resultados ? null : await avaliar("document.body.innerText").catch(() => "");
 
 ws.close(); chrome.kill(); servidor.close();
 setTimeout(() => { try { fs.rmSync(perfil, { recursive: true, force: true }); } catch {} }, 500);
 
 if (!resultados) {
-  const erro = await avaliar("document.body.innerText").catch(() => "");
   console.error("  ✖ a bancada não chegou ao fim", erro ?? "");
   process.exit(1);
 }

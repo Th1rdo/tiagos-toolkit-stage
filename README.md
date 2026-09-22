@@ -75,6 +75,19 @@ composição aguenta-se em todos os ecrãs.
 **A âncora é nos pés.** Uma personagem grande e uma pequena assentam no mesmo chão em vez de flutuarem a
 alturas diferentes. É o que faz duas pessoas parecerem estar na mesma sala.
 
+## Pormenores que se notam
+
+- **Trocar de cena cruza as imagens.** Pôr outra cena da biblioteca no ar faz o fundo novo entrar por cima
+  do antigo, e só depois de ter chegado — nada de meio segundo de preto enquanto o Forge vai buscar a imagem.
+- **Quem sai do palco desvanece**, em vez de desaparecer.
+- **A cena no ar tapa a pausa.** O cartaz gigante do «jogo em pausa» não aparece a meio da conversa — o mapa
+  está escondido, e a pausa só diz respeito a ele. Tu continuas a vê-la na marca do topo.
+- **Nada passa para o mapa escondido.** Com o palco por cima, ninguém arrasta um token sem querer nem faz
+  zoom a um mapa que não vê.
+- **Pôr no ar noutra cena avisa.** Se estás a ver uma cena e os jogadores estão noutra, o módulo diz-to
+  antes de ficares a olhar para um palco que só tu vês.
+- Com o **Points of Interest** instalado, os pontos do mapa escondido não aparecem a flutuar sobre a cena.
+
 ## Onde os dados vivem
 
 Numa flag da cena. **Cada cena tem o seu palco**: mudar de cena muda de sítio, e voltar traz o cenário e o
@@ -93,5 +106,5 @@ game.palco.estado();    // o palco da cena atual
 
 ```bash
 npm test          # lógica pura + verificação de integridade
-npm run test:dom  # bancada de browser (precisa de Chrome): 20 verificações com a folha de estilos real
+npm run test:dom  # bancada de browser (precisa de Chrome): 41 verificações com a folha de estilos real
 ```

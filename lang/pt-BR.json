@@ -44,5 +44,7 @@
   "STAGE.Biblioteca.NoPalco": "No palco",
   "STAGE.Biblioteca.Alterada": "alterada",
   "STAGE.Biblioteca.Confirmar": "Confirmar",
-  "STAGE.Avisos.ConfirmarApagar": "Apagar a cena guardada «{nome}»? O palco montado fica como está."
+  "STAGE.Avisos.ConfirmarApagar": "Apagar a cena guardada «{nome}»? O palco montado fica como está.",
+  "STAGE.Avisos.OutraCena": "Este palco está na cena «{aqui}», mas os jogadores estão em «{la}». Eles não o vão ver.",
+  "STAGE.EmPausa": "jogo em pausa"
 }

@@ -20,6 +20,16 @@ scripts = {a: ler(f"scripts/{a}") for a in os.listdir("scripts") if a.endswith("
 css = ler(mod["styles"][0])
 templates = {t: ler(f"templates/{t}") for t in (os.listdir("templates") if os.path.isdir("templates") else [])}
 
+# todos os scripts compilam. A lógica pura só importa alguns ficheiros; um erro
+# de sintaxe num dos outros (o palco.js, por exemplo) passava o npm test e só
+# rebentava quando o Foundry carregava o módulo. Já aconteceu.
+import subprocess
+for arq in sorted(scripts):
+    r = subprocess.run(["node", "--check", f"scripts/{arq}"], capture_output=True, text=True)
+    if r.returncode != 0:
+        linha = next((l for l in r.stderr.splitlines() if "Error" in l), r.stderr.strip()[:160])
+        falhas.append(f"{arq} não compila: {linha}")
+
 # imports relativos existem
 for arq, src in scripts.items():
     for imp in re.findall(r'from "\./([^"]+)"', src):

@@ -41,9 +41,30 @@ export const definirFundo = (fundo) => gravar(p => ({ ...p, fundo: fundo ?? "" }
 export const definirAjuste = (ajuste) => gravar(p => ({ ...p, ajuste: ajusteValido(ajuste) }));
 export const definirDeriva = (deriva) => gravar(p => ({ ...p, deriva: !!deriva }));
 
-/** O interruptor que importa: é isto que leva a cena à mesa. */
-export const mostrar = (visivel) => gravar(p => ({ ...p, visivel: !!visivel }));
-export const alternarVisivel = () => gravar(p => ({ ...p, visivel: !p.visivel }));
+/**
+ * O interruptor que importa: é isto que leva a cena à mesa.
+ *
+ * O palco vive na cena que o mestre está a VER, e os jogadores estão na cena
+ * ATIVA. Quase sempre são a mesma — quando não são, pôr no ar não chega a
+ * ninguém, e o mestre ficava a olhar para um palco que só ele vê.
+ */
+function avisarSeOutraCena(ligar) {
+  const aqui = cenaAtual();
+  const la = game.scenes?.active;
+  if (!ligar || !aqui || !la || aqui.id === la.id) return;
+  ui.notifications.warn(game.i18n.format("STAGE.Avisos.OutraCena", { aqui: aqui.name, la: la.name }));
+}
+
+export async function mostrar(visivel) {
+  avisarSeOutraCena(!!visivel);
+  return gravar(p => ({ ...p, visivel: !!visivel }));
+}
+
+export async function alternarVisivel() {
+  const ligar = !palco().visivel;
+  avisarSeOutraCena(ligar);
+  return gravar(p => ({ ...p, visivel: ligar }));
+}
 
 /** Limpar deixa a cena pronta para outra coisa, sem apagar a cena do Foundry. */
 export const limparPalco = () => gravar(() => ({ ...VAZIO }));

@@ -7,6 +7,11 @@
 <style>body { background: #111; color: #ddd; font: 12px ui-monospace, monospace; margin: 0; }
 #saida { position: relative; z-index: 70; }</style>
 <pre id="saida"></pre>
+<script>
+  // uma promessa rejeitada sem ninguém a apanhar parava a bancada em silêncio
+  addEventListener("unhandledrejection", (e) => { (globalThis.__erros ??= []).push(String(e.reason?.stack ?? e.reason)); });
+  addEventListener("error", (e) => { (globalThis.__erros ??= []).push(String(e.error?.stack ?? e.message)); });
+</script>
 <script type="module">
 // ---------------------------------------------------------------- o mínimo do Foundry
 const flags = { "tiagos-toolkit-stage": {} };
@@ -16,7 +21,8 @@ const cena = {
   async setFlag(m, k, v) { (flags[m] ??= {})[k] = v; await Promise.resolve(); }
 };
 globalThis.Hooks = { on() {}, once() {}, callAll() {}, off() {} };
-globalThis.ui = { notifications: { warn() {}, info() {} }, controls: { render() {} } };
+const avisos = [];
+globalThis.ui = { notifications: { warn: (m) => avisos.push(m), info() {} }, controls: { render() {} } };
 globalThis.game = {
   user: { isGM: true, id: "gm" },
   i18n: { localize: (k) => k, format: (k) => k },
@@ -26,7 +32,7 @@ globalThis.game = {
     async set(m, k, v) { this.guardado[`${m}.${k}`] = v; },
     register() {}
   },
-  scenes: { current: cena },
+  scenes: { current: cena, active: cena },
   keybindings: { register() {} }
 };
 globalThis.foundry = {
@@ -42,7 +48,7 @@ globalThis.canvas = { ready: true, scene: cena, app: { ticker: { maxFPS: 60 } } 
 const { palcoEmCena } = await import("../../scripts/palco.js");
 const { definirFundo, adicionarPersonagem, mostrar, focarPersonagem, palco } = await import("../../scripts/dados.js");
 
-const r = [];
+const r = globalThis.__parcial = [];      // parciais à vista: se a bancada encravar, vê-se onde
 const eIgual = (nome, obtido, esperado) => r.push({ nome, ok: JSON.stringify(obtido) === JSON.stringify(esperado), obtido, esperado });
 const eVerdade = (nome, v) => r.push({ nome, ok: !!v, obtido: v, esperado: true });
 const raiz = () => document.getElementById("stage-palco");
@@ -60,7 +66,8 @@ palcoEmCena.desenhar();
 await espera();
 eVerdade("o mestre vê o palco enquanto compõe", !raiz().hidden);
 eIgual("a marca avisa que é pré-visualização", raiz().querySelector(".stage-marca").textContent, "STAGE.PreVisualizacao");
-eIgual("o fundo é o escolhido", raiz().querySelector(".stage-fundo-img").getAttribute("src"), "casa.webp");
+await espera(80);                           // a camada nova só entra quando a imagem chega
+eIgual("o fundo é o escolhido", raiz().querySelector(".stage-fundo-visivel")?.getAttribute("src"), "casa.webp");
 
 // 3. duas personagens caem frente a frente
 const ana = await adicionarPersonagem({ img: "ana.webp", nome: "Ana" });
@@ -83,8 +90,10 @@ const comFoco = raiz().querySelector(`[data-id="${ana.id}"]`);
 const semFoco = raiz().querySelector(`[data-id="${rui.id}"]`);
 eIgual("quem tem o foco fica a 100%", comFoco.style.opacity, "1");
 eIgual("quem não tem recua, mas continua lá", semFoco.style.opacity, "0.55");
-eVerdade("quem tem o foco é desenhado à frente",
-  [...raiz().querySelectorAll(".stage-personagem")].at(-1).dataset.id === ana.id);
+// a frente de quem vem do z-index (a ordem no DOM fica quieta, para não repetir entradas)
+const porCima = [...raiz().querySelectorAll(".stage-personagem")]
+  .sort((a, b) => Number(b.style.zIndex) - Number(a.style.zIndex))[0];
+eVerdade("quem tem o foco é desenhado à frente", porCima.dataset.id === ana.id);
 
 // 5. arrastar guarda frações, não pixéis
 const antes = palco().elenco.find(p => p.id === rui.id).x;
@@ -161,6 +170,67 @@ eIgual("e a guardada continua intacta", JSON.stringify(bib.cena(cenaGuardada.id)
 // atualizar a guardada com o que está no palco
 await bib.atualizarGuardada();
 eVerdade("atualizar apanha o que está no palco", bib.semAlteracoes());
+
+// ------------------------------------------------------------------ regressões
+// Cada um destes reproduz um bug encontrado na revisão da 0.2.0.
+const { controlo } = await import("../../scripts/controlo.js");
+controlo.montar();
+game.user.isGM = true;
+palcoEmCena.compor(true);
+palcoEmCena.desenhar();
+await espera(450);                          // deixar a entrada acabar
+
+// 1. dar o foco não pode fazer toda a gente voltar a entrar
+const removidos = [];
+const vigia = new MutationObserver(ms => ms.forEach(m => removidos.push(...m.removedNodes)));
+vigia.observe(raiz().querySelector(".stage-elenco"), { childList: true });
+const primeira = palco().elenco[0].id;
+await focarPersonagem(primeira);
+palcoEmCena.desenhar();
+await espera();
+vigia.disconnect();
+eIgual("mudar o foco não tira ninguém do palco (senão a entrada repete)", removidos.length, 0);
+eVerdade("a animação de entrada não fica pendurada",
+  ![...raiz().querySelectorAll(".stage-personagem")].some(f => f.classList.contains("stage-a-entrar")));
+
+// 2. a roda sobre quem tem o foco não pode somar os 4% do foco à escala
+const focada = raiz().querySelector(`[data-id="${primeira}"]`);
+const escalaAntes = palco().elenco.find(x => x.id === primeira).escala;
+focada.dispatchEvent(new WheelEvent("wheel", { bubbles: true, deltaY: -120, cancelable: true }));
+await espera(400);
+eIgual("a roda sobe um passo, sem o bónus do foco",
+  palco().elenco.find(x => x.id === primeira).escala, Math.round((escalaAntes + 0.03) * 100) / 100);
+
+// 3. espelhar vira a figura, não o nome
+const { espelharPersonagem } = await import("../../scripts/dados.js");
+await espelharPersonagem(primeira);
+palcoEmCena.desenhar();
+await espera();
+const espelhada = raiz().querySelector(`[data-id="${primeira}"]`);
+eVerdade("espelhar não põe o nome ao contrário", !espelhada.style.transform.includes("scaleX"));
+eVerdade("espelhar vira a imagem", espelhada.querySelector("img").style.transform.includes("scaleX(-1)"));
+
+// 4. o palco tem de aceitar largar atores quando o mestre compõe
+eIgual("a compor, o palco apanha o que se larga em cima", getComputedStyle(raiz()).pointerEvents, "auto");
+
+// 5. escrever o nome de uma personagem não pode perder o cursor a meio
+controlo.abrir();
+await espera();
+const campoNome = document.querySelector('#stage-painel input[data-campo="nome"]');
+campoNome.focus();
+campoNome.value = "Mero";
+campoNome.dispatchEvent(new Event("input", { bubbles: true }));
+controlo.desenhar();                          // o que acontece quando a gravação volta
+const ativo = document.activeElement;
+eVerdade("depois de redesenhar, o cursor continua no nome", ativo?.dataset?.campo === "nome" && ativo.value === "Mero");
+
+// 6. pôr no ar numa cena que não é a dos jogadores tem de avisar
+const outra = { ...cena, id: "c2", name: "Outra" };
+game.scenes.active = outra;
+avisos.length = 0;
+await mostrar(true);
+eVerdade("avisa quando os jogadores estão noutra cena", avisos.length === 1);
+game.scenes.active = cena;
 
 globalThis.__r = r;
 document.getElementById("saida").textContent =

@@ -61,7 +61,10 @@ export function estiloDaPersonagem(p, { haFoco = false } = {}) {
     left: `${fracaoValida(p.x) * 100}%`,
     top: `${fracaoValida(p.y, 0.97) * 100}%`,
     altura: `${(foco ? escala * 1.04 : escala) * 100}vh`,
-    transform: `translate(-50%, -100%)${p.espelhado ? " scaleX(-1)" : ""}`,
+    // espelha-se a IMAGEM, não a figura: a figura leva o nome, e virá-la punha
+    // o nome a ler-se ao contrário
+    transform: "translate(-50%, -100%)",
+    espelho: p.espelhado ? "scaleX(-1)" : "none",
     opacidade: haFoco && !foco ? 0.55 : 1,
     filtro: haFoco && !foco ? "saturate(0.7) brightness(0.72)" : "none"
   };
