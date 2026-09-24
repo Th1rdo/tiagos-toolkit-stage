@@ -44,6 +44,7 @@ export async function guardarComo(nome) {
     fundo: p.fundo,
     ajuste: p.ajuste,
     deriva: p.deriva,
+    enquadramento: p.enquadramento,
     elenco: (p.elenco ?? []).map(({ foco, ...resto }) => resto),
     criado: Date.now(),
     atualizado: Date.now()
@@ -62,6 +63,7 @@ export async function atualizarGuardada(id = origemAtual()) {
     fundo: p.fundo,
     ajuste: p.ajuste,
     deriva: p.deriva,
+    enquadramento: p.enquadramento,
     elenco: (p.elenco ?? []).map(({ foco, ...resto }) => resto),
     atualizado: Date.now()
   } : c)));
@@ -101,6 +103,7 @@ export async function carregar(id, { noAr = false } = {}) {
     fundo: c.fundo,
     ajuste: c.ajuste,
     deriva: c.deriva,
+    enquadramento: c.enquadramento ?? { x: 0.5, y: 0.5, zoom: 1 },
     visivel: noAr,
     elenco: (c.elenco ?? []).map(p => ({ ...p, foco: false }))
   });

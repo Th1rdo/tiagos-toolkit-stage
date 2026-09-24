@@ -112,17 +112,35 @@ async function aoLargar(ev) {
   ev.preventDefault();
   let dados = null;
   try { dados = JSON.parse(ev.dataTransfer.getData("text/plain")); } catch { return; }
-  if (!dados?.uuid) return;
+  if (!dados) return;
 
-  const doc = await fromUuid(dados.uuid).catch(() => null);
-  const img = doc?.img ?? doc?.texture?.src ?? doc?.prototypeToken?.texture?.src ?? doc?.actor?.img;
+  const { img, nome } = await arteDoQueSeLargou(dados);
   if (!img) return ui.notifications.warn(game.i18n.localize("STAGE.Avisos.SemArte"));
 
-  await adicionarPersonagem({
-    img,
-    nome: doc.name ?? nomeDoFicheiro(img),
-    x: ev.clientX / globalThis.innerWidth
-  });
+  // entra onde se largou, com os pés no chão de quem já lá está
+  await adicionarPersonagem({ img, nome, x: ev.clientX / globalThis.innerWidth });
+}
+
+/**
+ * O que se pode largar no palco: um ator ou um token (da barra lateral ou do
+ * compêndio) e — novo na 0.3 — uma imagem arrastada do navegador de ficheiros
+ * do Foundry, para quem ainda não tem ator.
+ *
+ * Para um ator, o retrato vale mais do que o token: o token costuma ser um
+ * círculo com moldura, que no palco parece um autocolante. Só se o retrato for
+ * o boneco por omissão do Foundry é que se usa o token.
+ */
+async function arteDoQueSeLargou(dados) {
+  const ficheiro = dados.texture?.src ?? dados.src ?? dados.path;
+  if (!dados.uuid && ficheiro) return { img: ficheiro, nome: nomeDoFicheiro(ficheiro) };
+  if (!dados.uuid) return {};
+  const doc = await fromUuid(dados.uuid).catch(() => null);
+  if (!doc) return {};
+  const vazio = (src) => !src || /mystery-man|icons\/svg\//.test(src);
+  const retrato = doc.img ?? doc.actor?.img;
+  const token = doc.texture?.src ?? doc.prototypeToken?.texture?.src;
+  const img = vazio(retrato) ? (token ?? retrato) : retrato;
+  return { img, nome: doc.name ?? nomeDoFicheiro(img ?? "") };
 }
 
 Hooks.once("ready", () => {

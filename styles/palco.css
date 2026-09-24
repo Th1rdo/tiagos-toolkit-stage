@@ -29,7 +29,8 @@
 }
 #stage-palco.stage-visivel { opacity: 1; }
 
-.stage-fundo { position: absolute; inset: 0; }
+.stage-fundo { position: absolute; inset: 0; transition: transform 160ms linear; }
+#stage-palco.stage-a-enquadrar .stage-fundo { transition: none; }
 .stage-fundo-img {
   position: absolute; inset: 0;
   width: 100%; height: 100%; display: block;
@@ -39,7 +40,29 @@
 }
 .stage-fundo-img.stage-fundo-visivel { opacity: 1; }
 .stage-fundo-img.stage-sem-transicao { transition: none; }
-.stage-fundo[data-ajuste="conter"] .stage-fundo-img { object-fit: contain; }
+
+/* «Inteira»: a imagem toda, sem barras pretas. Por trás, a mesma imagem desfocada
+   e escurecida enche o que sobra (como um vídeo vertical num ecrã deitado), e as
+   bordas da imagem esbatem-se para dentro dela — nenhum corte seco. A imagem é
+   medida em JS (palco.js #encaixar) para a máscara cair na borda dela. */
+.stage-fundo-ambiente {
+  position: absolute; inset: -6%;
+  background: var(--stage-fundo-url) center / cover no-repeat;
+  filter: blur(42px) brightness(0.42) saturate(1.15);
+  opacity: 0;
+  transition: opacity 700ms var(--stage-curva);
+}
+.stage-fundo[data-ajuste="conter"] .stage-fundo-ambiente { opacity: 1; }
+.stage-fundo[data-ajuste="conter"] .stage-fundo-img {
+  inset: auto;
+  object-fit: fill;
+  -webkit-mask-image: linear-gradient(to right, transparent, #000 5%, #000 95%, transparent),
+                      linear-gradient(to bottom, transparent, #000 5%, #000 95%, transparent);
+  -webkit-mask-composite: source-in;
+  mask-image: linear-gradient(to right, transparent, #000 5%, #000 95%, transparent),
+              linear-gradient(to bottom, transparent, #000 5%, #000 95%, transparent);
+  mask-composite: intersect;
+}
 
 /* uma deriva muito lenta: a imagem deixa de parecer um cartaz pregado */
 .stage-fundo.stage-deriva .stage-fundo-img {
@@ -51,19 +74,45 @@
   to   { transform: scale(1.09) translate3d(0.8%, 0.6%, 0); }
 }
 
-/* a vinheta empurra o olhar para o meio, onde estão as pessoas */
+/* A vinheta empurra o olhar para o meio, onde estão as pessoas.
+   Na 0.2 era uma sombra interior com 60 px de «spread»: uma faixa escura e dura
+   à volta de tudo, a que o Tiago chamou bordas. Agora é um gradiente sem arestas. */
 #stage-palco::after {
   content: "";
   position: absolute; inset: 0; pointer-events: none;
-  box-shadow: inset 0 0 260px 60px rgba(0, 0, 0, 0.55);
+  background: radial-gradient(ellipse 75% 70% at 50% 48%, transparent 58%, rgba(0, 0, 0, 0.42) 100%);
 }
 
+/* o mestre agarra o fundo para o enquadrar */
+#stage-palco[data-mestre="1"]:has(.stage-fundo[data-ajuste="cobrir"]) { cursor: grab; }
+#stage-palco.stage-a-enquadrar, #stage-palco.stage-a-enquadrar * { cursor: grabbing !important; }
+
+/* a linha do chão a que os pés encostaram */
+.stage-chao {
+  position: absolute; left: 0; right: 0; height: 0; pointer-events: none;
+  border-top: 1px dashed rgba(201, 139, 60, 0.75);
+  box-shadow: 0 0 10px rgba(201, 139, 60, 0.35);
+  z-index: 50;
+}
+/* arrastar para baixo da borda tira de cena */
+.stage-saida {
+  position: absolute; left: 50%; bottom: 18px; transform: translateX(-50%);
+  padding: 6px 16px; pointer-events: none; z-index: 51;
+  font-family: var(--stage-mono); font-size: 12px; letter-spacing: 0.18em; text-transform: uppercase;
+  color: #E8B4AE; background: rgba(120, 30, 24, 0.72); border: 1px solid rgba(192, 57, 43, 0.8);
+}
+.stage-personagem.stage-a-sair-zona { opacity: 0.35 !important; filter: grayscale(1) !important; }
+
 /* ------------------------------------------------------------------ elenco */
-.stage-elenco { position: absolute; inset: 0; }
+.stage-elenco { position: absolute; inset: 0; pointer-events: none; }
 
 .stage-personagem {
   position: absolute;
   margin: 0;
+  /* A figura abraça a imagem. Sem isto ficava com a largura do ecrã inteiro (1920 px
+     para uma personagem de 285): agarrar em qualquer ponto dessa faixa apanhava-a,
+     roubava o rato às outras e ao fundo. Apanhado no teste da 0.3. */
+  width: max-content;
   height: 62vh;                       /* o inline manda; isto é só o arranque */
   transition: opacity 220ms var(--stage-curva), filter 220ms var(--stage-curva),
               height 220ms var(--stage-curva);
@@ -77,7 +126,7 @@
 #stage-biblioteca img { border: none; box-shadow: none; border-radius: 0; background: none; }
 
 .stage-personagem img {
-  height: 100%; width: auto; display: block;
+  height: 100%; width: auto; display: block; max-width: none;
   filter: drop-shadow(0 18px 26px rgba(0, 0, 0, 0.6));
   user-select: none;
 }
@@ -335,3 +384,7 @@ body.stage-ativo #poi-fio { visibility: hidden; }
 .stage-pinta { width: 6px; height: 6px; border-radius: 50%; background: var(--stage-acento); flex: none; }
 .stage-barra-guardar { display: flex; align-items: center; gap: 14px; padding: 0 14px 13px; }
 .stage-limpar { margin-left: auto; }
+
+/* a linha «esta imagem serve?» */
+#stage-painel .stage-qualidade { font-size: 11px; color: var(--stage-cinza); line-height: 1.35; }
+#stage-painel .stage-qualidade[data-nivel="pequena"] { color: #E0A85A; }

@@ -1,11 +1,11 @@
 import { MODULE_ID, AJUSTE, paiUI } from "./const.js";
 import {
-  palco, definirFundo, definirAjuste, definirDeriva, alternarVisivel,
+  palco, definirFundo, definirAjuste, definirDeriva, alternarVisivel, definirEnquadramento,
   adicionarPersonagem, removerPersonagem, renomearPersonagem, espelharPersonagem,
   focarPersonagem, limparPalco
 } from "./dados.js";
 import { palcoEmCena } from "./palco.js";
-import { nomeDoFicheiro, igualAoGuardado } from "./logica.js";
+import { nomeDoFicheiro, igualAoGuardado, avaliarFundo } from "./logica.js";
 import * as bib from "./biblioteca.js";
 
 /**
@@ -26,9 +26,32 @@ function escolherImagem(atual, aoEscolher) {
   new FP({ type: "image", current: atual || "", callback: aoEscolher }).render(true);
 }
 
+/** Medidas das imagens de fundo já vistas: o painel diz se servem para encher o ecrã. */
+const medidas = new Map();
+
 class Controlo {
   #el = null;
   #aberto = false;
+
+  /**
+   * «Esta imagem serve?» — a linha por baixo do nome do fundo.
+   * A pergunta do Tiago foi «que resolução preciso?»; a resposta fica aqui, para
+   * cada imagem: o tamanho, se é ótima/serve/pequena, e quanto corta a encher.
+   */
+  #qualidade(src) {
+    if (!src) return "";
+    const m = medidas.get(src);
+    if (!m) {
+      const img = new Image();
+      img.onload = () => { medidas.set(src, { w: img.naturalWidth, h: img.naturalHeight }); if (this.#aberto) this.desenhar(); };
+      img.src = src;
+      return "";
+    }
+    const a = avaliarFundo(m.w, m.h);
+    const partes = [`${m.w} × ${m.h}`, game.i18n.localize(`STAGE.Qualidade.${a.nivel}`)];
+    if (a.corte >= 0.12) partes.push(game.i18n.format("STAGE.Qualidade.Corta", { pct: Math.round(a.corte * 100) }));
+    return `<div class="stage-qualidade" data-nivel="${a.nivel}">${partes.join(" · ")}</div>`;
+  }
 
   montar() {
     if (this.#el) return;
@@ -116,8 +139,12 @@ class Controlo {
               <label><input type="radio" name="ajuste" value="${AJUSTE.CONTER}" ${p.ajuste === AJUSTE.CONTER ? "checked" : ""}> ${game.i18n.localize("STAGE.Conter")}</label>
               <label><input type="checkbox" data-campo="deriva" ${p.deriva ? "checked" : ""}> ${game.i18n.localize("STAGE.Deriva")}</label>
             </div>
+            ${this.#qualidade(p.fundo)}
+            ${p.fundo && p.ajuste !== AJUSTE.CONTER && (p.enquadramento.x !== 0.5 || p.enquadramento.y !== 0.5 || p.enquadramento.zoom !== 1)
+              ? `<button type="button" class="stage-ligacao" data-accao="repor-enquadramento">${game.i18n.localize("STAGE.Acoes.ReporEnquadramento")}</button>` : ""}
           </div>
         </div>
+        ${p.fundo && p.ajuste !== AJUSTE.CONTER ? `<div class="stage-dica">${game.i18n.localize("STAGE.Gestos.Fundo")}</div>` : ""}
       </section>
 
       <section class="stage-seccao">
@@ -137,6 +164,7 @@ class Controlo {
               <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4 L12 12 M12 4 L4 12"></path></svg>
             </button>
           </div>`).join("") : `<div class="stage-dica">${game.i18n.localize("STAGE.ElencoVazio")}</div>`}
+        ${p.elenco.length ? `<div class="stage-dica">${game.i18n.localize("STAGE.Gestos.Personagem")}</div>` : ""}
         <button type="button" class="stage-adicionar" data-accao="personagem">+ ${game.i18n.localize("STAGE.Personagem")}</button>
       </section>
 
@@ -170,6 +198,7 @@ class Controlo {
       case "fundo": return escolherImagem(palco().fundo, (caminho) => definirFundo(caminho));
       case "personagem": return escolherImagem("", (caminho) =>
         adicionarPersonagem({ img: caminho, nome: nomeDoFicheiro(caminho) }));
+      case "repor-enquadramento": return definirEnquadramento(null);
       case "foco": return focarPersonagem(id);
       case "espelhar": return espelharPersonagem(id);
       case "remover": return removerPersonagem(id);

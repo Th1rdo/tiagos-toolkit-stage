@@ -1,5 +1,5 @@
 import { MODULE_ID, FLAG, AJUSTE } from "./const.js";
-import { novaPersonagem, fracaoValida, escalaValida, ajusteValido, alternarFoco } from "./logica.js";
+import { novaPersonagem, fracaoValida, escalaValida, ajusteValido, alternarFoco, enquadramentoValido } from "./logica.js";
 
 /**
  * O palco vive numa flag da **cena**.
@@ -14,11 +14,11 @@ import { novaPersonagem, fracaoValida, escalaValida, ajusteValido, alternarFoco 
 
 export const cenaAtual = () => canvas?.scene ?? game.scenes?.current ?? null;
 
-const VAZIO = { fundo: "", ajuste: AJUSTE.COBRIR, deriva: true, visivel: false, elenco: [] };
+const VAZIO = { fundo: "", ajuste: AJUSTE.COBRIR, deriva: true, visivel: false, elenco: [], enquadramento: { x: 0.5, y: 0.5, zoom: 1 } };
 
 export function palco(cena = cenaAtual()) {
   const guardado = cena?.getFlag(MODULE_ID, FLAG);
-  return { ...VAZIO, ...(guardado ?? {}), elenco: guardado?.elenco ?? [] };
+  return { ...VAZIO, ...(guardado ?? {}), elenco: guardado?.elenco ?? [], enquadramento: enquadramentoValido(guardado?.enquadramento) };
 }
 
 function souMestre() {
@@ -37,7 +37,9 @@ async function gravar(transformar, cena = cenaAtual()) {
 
 // ------------------------------------------------------------------ cenário
 
-export const definirFundo = (fundo) => gravar(p => ({ ...p, fundo: fundo ?? "" }));
+// um fundo novo começa enquadrado ao centro: o enquadramento do anterior não lhe diz respeito
+export const definirFundo = (fundo) => gravar(p => ({ ...p, fundo: fundo ?? "", enquadramento: enquadramentoValido() }));
+export const definirEnquadramento = (e) => gravar(p => ({ ...p, enquadramento: enquadramentoValido(e) }));
 export const definirAjuste = (ajuste) => gravar(p => ({ ...p, ajuste: ajusteValido(ajuste) }));
 export const definirDeriva = (deriva) => gravar(p => ({ ...p, deriva: !!deriva }));
 
@@ -71,11 +73,11 @@ export const limparPalco = () => gravar(() => ({ ...VAZIO }));
 
 // ------------------------------------------------------------------ elenco
 
-export async function adicionarPersonagem({ nome, img, x } = {}) {
+export async function adicionarPersonagem({ nome, img, x, y } = {}) {
   if (!img) return null;
   let nova = null;
   await gravar(p => {
-    nova = novaPersonagem({ id: foundry.utils.randomID(), nome, img, x: x ?? posicaoLivre(p.elenco) });
+    nova = novaPersonagem({ id: foundry.utils.randomID(), nome, img, x: x ?? posicaoLivre(p.elenco), y: y ?? chaoComum(p.elenco) });
     return { ...p, elenco: [...p.elenco, nova] };
   });
   return nova;
@@ -88,6 +90,17 @@ export async function adicionarPersonagem({ nome, img, x } = {}) {
  * e a segunda a dois terços — já ficam frente a frente sem ninguém arrastar
  * nada. A partir daí espalham-se pelo meio.
  */
+/**
+ * O chão onde está a maioria — quem entra, entra no mesmo chão que os outros.
+ * Sem ninguém em cena, os pés quase no fundo do ecrã.
+ */
+export function chaoComum(elenco = []) {
+  if (!elenco.length) return 0.97;
+  const contas = new Map();
+  for (const p of elenco) { const y = fracaoValida(p.y, 0.97); contas.set(y, (contas.get(y) ?? 0) + 1); }
+  return [...contas.entries()].sort((a, b) => b[1] - a[1] || b[0] - a[0])[0][0];
+}
+
 export function posicaoLivre(elenco = []) {
   const ocupadas = elenco.map(p => p.x ?? 0.5);
   for (const alvo of [0.33, 0.67, 0.5, 0.18, 0.82]) {

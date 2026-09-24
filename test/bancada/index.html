@@ -46,6 +46,7 @@ globalThis.foundry = {
 globalThis.canvas = { ready: true, scene: cena, app: { ticker: { maxFPS: 60 } } };
 
 const { palcoEmCena } = await import("../../scripts/palco.js");
+const { escalaPorRoda } = await import("../../scripts/logica.js");
 const { definirFundo, adicionarPersonagem, mostrar, focarPersonagem, palco } = await import("../../scripts/dados.js");
 
 const r = globalThis.__parcial = [];      // parciais à vista: se a bancada encravar, vê-se onde
@@ -198,8 +199,8 @@ const focada = raiz().querySelector(`[data-id="${primeira}"]`);
 const escalaAntes = palco().elenco.find(x => x.id === primeira).escala;
 focada.dispatchEvent(new WheelEvent("wheel", { bubbles: true, deltaY: -120, cancelable: true }));
 await espera(400);
-eIgual("a roda sobe um passo, sem o bónus do foco",
-  palco().elenco.find(x => x.id === primeira).escala, Math.round((escalaAntes + 0.03) * 100) / 100);
+eIgual("a roda sobe em proporção, sem o bónus do foco",
+  palco().elenco.find(x => x.id === primeira).escala, escalaPorRoda(escalaAntes, -120));
 
 // 3. espelhar vira a figura, não o nome
 const { espelharPersonagem } = await import("../../scripts/dados.js");

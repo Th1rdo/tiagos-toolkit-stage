@@ -3,10 +3,10 @@
   "STAGE.Fundo": "Fundo",
   "STAGE.SemFundo": "Sem fundo escolhido",
   "STAGE.Cobrir": "Encher",
-  "STAGE.Conter": "Caber",
+  "STAGE.Conter": "Inteira",
   "STAGE.Deriva": "Deriva lenta",
   "STAGE.Elenco": "Elenco",
-  "STAGE.ElencoVazio": "Arraste um ator para o palco, ou use o + aqui em baixo.",
+  "STAGE.ElencoVazio": "Arraste um ator (ou uma imagem do navegador de ficheiros) para o palco, ou use o + aqui em baixo.",
   "STAGE.Personagem": "personagem",
   "STAGE.NomePersonagem": "Nome (aparece com o foco)",
   "STAGE.NoAr": "No ar",
@@ -46,5 +46,13 @@
   "STAGE.Biblioteca.Confirmar": "Confirmar",
   "STAGE.Avisos.ConfirmarApagar": "Apagar a cena guardada «{nome}»? O palco montado fica como está.",
   "STAGE.Avisos.OutraCena": "Este palco está na cena «{aqui}», mas os jogadores estão em «{la}». Eles não o vão ver.",
-  "STAGE.EmPausa": "jogo em pausa"
+  "STAGE.EmPausa": "jogo em pausa",
+  "STAGE.Qualidade.otima": "ótima",
+  "STAGE.Qualidade.boa": "serve",
+  "STAGE.Qualidade.pequena": "pequena — fica esborratada num ecrã grande",
+  "STAGE.Qualidade.Corta": "corta {pct}% a encher — arraste o fundo para escolher a parte",
+  "STAGE.Acoes.ReporEnquadramento": "Repor o enquadramento",
+  "STAGE.Gestos.Fundo": "No palco: arrastar o fundo escolhe a parte que se vê · roda aproxima · duplo clique repõe.",
+  "STAGE.Gestos.Personagem": "Arrastar move (os pés encostam ao chão dos outros) · roda: tamanho · clique: foco · botão direito: espelhar · arrastar para baixo da borda: tirar. Com o rato por cima: setas, + −, F, Delete.",
+  "STAGE.Gestos.LargarParaTirar": "Largar para tirar de cena"
 }
