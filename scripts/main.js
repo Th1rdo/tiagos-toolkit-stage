@@ -20,6 +20,21 @@ Hooks.once("init", () => {
     onChange: (v) => document.body.classList.toggle("stage-sem-escurecer", !v)
   });
 
+  // 0.4.1: os nomes por baixo de quem fala tapavam a arte (o Tiago não os quer)
+  game.settings.register(MODULE_ID, "mostrarNomes", {
+    name: "STAGE.Config.Nomes", hint: "STAGE.Config.NomesHint",
+    scope: "world", config: true, type: Boolean, default: false,
+    onChange: () => palcoEmCena.redesenharElenco()
+  });
+
+  // 0.4.1: com a cena no ar, a hotbar some e a barra da direita recolhe — em cada
+  // cliente, por isso cada um escolhe (há quem precise do chat aberto)
+  game.settings.register(MODULE_ID, "recolherInterface", {
+    name: "STAGE.Config.Recolher", hint: "STAGE.Config.RecolherHint",
+    scope: "client", config: true, type: Boolean, default: true,
+    onChange: (v) => { document.body.classList.toggle("stage-recolher", v); recolherInterface(!!palco().visivel); }
+  });
+
   game.settings.register(MODULE_ID, "aliviarCanvas", {
     name: "STAGE.Config.Aliviar", hint: "STAGE.Config.AliviarHint",
     scope: "client", config: true, type: Boolean, default: true
@@ -90,6 +105,24 @@ function redesenhar() {
   palcoEmCena.desenhar();
   if (controlo.aberto) controlo.desenhar();
   aliviarCanvas(!!palco().visivel);
+  recolherInterface(!!palco().visivel);
+}
+
+/**
+ * Com a cena no ar, a barra da direita recolhe; quando sai do ar, volta — mas só
+ * se fomos nós a recolhê-la. Se o jogador já a tinha fechada, fica fechada.
+ * A hotbar é CSS (`stage-recolher`): some, e volta a aparecer com o rato por cima.
+ */
+let recolhemos = false;
+let estavaNoAr = false;
+function recolherInterface(noAr) {
+  if (noAr === estavaNoAr) return;
+  estavaNoAr = noAr;
+  const sb = ui.sidebar;
+  if (!sb) return;
+  const quer = game.settings.get(MODULE_ID, "recolherInterface");
+  if (noAr && quer && sb.expanded) { sb.collapse?.(); recolhemos = true; }
+  else if (!noAr && recolhemos) { sb.expand?.(); recolhemos = false; }
 }
 
 /**
@@ -136,6 +169,7 @@ Hooks.once("ready", () => {
   palcoEmCena.montar();
   controlo.montar();
   document.body.classList.toggle("stage-sem-escurecer", !game.settings.get(MODULE_ID, "escurecerInterface"));
+  document.body.classList.toggle("stage-recolher", game.settings.get(MODULE_ID, "recolherInterface"));
 
   const raiz = document.getElementById("stage-palco");
   raiz.addEventListener("dragover", (ev) => { if (game.user.isGM) ev.preventDefault(); });

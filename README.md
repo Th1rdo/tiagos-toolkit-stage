@@ -87,7 +87,15 @@ Com o painel aberto, mexes nas personagens em cima do próprio palco:
 Para pôr gente em cena: arrasta um **ator** da barra lateral (entra com o retrato), um **token**, ou uma
 **imagem do navegador de ficheiros** do Foundry. Entra onde a largas, no chão comum. Sem nada disso, o **+**.
 
-Clicar em quem já tem o foco devolve a cena a todos. O nome só aparece por baixo de quem tem o foco.
+Clicar em quem já tem o foco devolve a cena a todos. O nome de quem tem o foco só aparece com a definição
+*Mostrar o nome de quem tem o foco* ligada (por omissão, desligada — a arte fica limpa).
+
+## Com a cena no ar
+
+- A marca **No ar** / *Pré-visualização* no topo **só o mestre a vê**.
+- A **hotbar some** (volta com o rato por cima) e a **barra da direita recolhe**; ao sair do ar, a barra volta
+  como estava. Cada um pode desligar isto nas definições (*Recolher a interface com a cena no ar*).
+- O mapa por baixo abranda para 5 fps — é isso o «FPS 5» no canto: devolve a GPU à mesa.
 
 ## Duas decisões que se notam em jogo
 

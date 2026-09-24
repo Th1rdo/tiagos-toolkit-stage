@@ -51,5 +51,9 @@
   "STAGE.Aura.DaPersonagem": "Aura desta personagem (clicar muda)",
   "STAGE.Vazio": "Escolha uma cena em cima, ou comece uma com o +.",
   "STAGE.Gravado": "Grava-se sozinho",
-  "STAGE.GravaAoMexer": "Vira cena guardada à primeira alteração"
+  "STAGE.GravaAoMexer": "Vira cena guardada à primeira alteração",
+  "STAGE.Config.Nomes": "Mostrar o nome de quem tem o foco",
+  "STAGE.Config.NomesHint": "Uma faixa com o nome por baixo da personagem que está a falar. Desligado, a arte fica limpa.",
+  "STAGE.Config.Recolher": "Recolher a interface com a cena no ar",
+  "STAGE.Config.RecolherHint": "Com o palco no ar, a hotbar some (volta com o rato por cima) e a barra da direita recolhe. Ao sair do ar, a barra volta como estava."
 }

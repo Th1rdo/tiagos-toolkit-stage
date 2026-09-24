@@ -225,6 +225,15 @@ await espera(400);
 eIgual("a roda sobe em proporção, sem o bónus do foco",
   palco().elenco.find(x => x.id === primeira).escala, Math.round(escalaPorRoda(escalaAntes, -120) * 100) / 100);   // grava-se com 2 casas
 
+// 0.4.1: os nomes só aparecem com a definição ligada (por omissão, desligada)
+const getOriginal = game.settings.get.bind(game.settings);
+game.settings.get = (m, k) => (k === "mostrarNomes" ? false : getOriginal(m, k));
+palcoEmCena.redesenharElenco();
+eVerdade("sem a definição, ninguém tem o nome à vista",
+  [...raiz().querySelectorAll(".stage-personagem figcaption")].every(f => f.hidden));
+game.settings.get = getOriginal;
+palcoEmCena.redesenharElenco();
+
 // 3. espelhar vira a figura, não o nome
 const { espelharPersonagem } = await import("../../scripts/dados.js");
 await espelharPersonagem(primeira);

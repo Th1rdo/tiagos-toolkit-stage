@@ -51,5 +51,9 @@
   "STAGE.Aura.DaPersonagem": "This character's aura (click to change)",
   "STAGE.Vazio": "Pick a scene above, or start one with +.",
   "STAGE.Gravado": "Saves automatically",
-  "STAGE.GravaAoMexer": "Becomes a saved scene on the first change"
+  "STAGE.GravaAoMexer": "Becomes a saved scene on the first change",
+  "STAGE.Config.Nomes": "Show the focused character's name",
+  "STAGE.Config.NomesHint": "A name strip under the character who's speaking. Off keeps the art clean.",
+  "STAGE.Config.Recolher": "Tuck away the interface while a scene is live",
+  "STAGE.Config.RecolherHint": "While the stage is live, the hotbar hides (hover to bring it back) and the right sidebar collapses. When the scene goes off air, the sidebar returns as it was."
 }

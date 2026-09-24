@@ -75,6 +75,12 @@ class Palco {
 
   get aCompor() { return this.#aCompor; }
 
+  /** Uma definição mudou (ex.: mostrar nomes): o elenco redesenha-se mesmo sem mudar. */
+  redesenharElenco() {
+    this.#estadoAnterior = "";
+    this.desenhar();
+  }
+
   /** Compor = o mestre está a montar a cena e vê-a mesmo sem estar no ar. */
   compor(ligado) {
     this.#aCompor = !!ligado;
@@ -222,6 +228,7 @@ class Palco {
    */
   #desenharElenco(p, isGM) {
     const foco = haFocoNoElenco(p.elenco);
+    const mostrarNomes = !!game.settings.get(MODULE_ID, "mostrarNomes");
     const ordenado = ordenarElenco(p.elenco);
     const presentes = new Set(ordenado.map(x => x.id));
     const existentes = new Map([...this.#elenco.children]
@@ -268,7 +275,7 @@ class Palco {
       img.style.transform = s.espelho;
       const legenda = el.querySelector("figcaption");
       legenda.textContent = personagem.nome ?? "";
-      legenda.hidden = !personagem.nome?.trim() || !personagem.foco;
+      legenda.hidden = !mostrarNomes || !personagem.nome?.trim() || !personagem.foco;
     });
   }
 

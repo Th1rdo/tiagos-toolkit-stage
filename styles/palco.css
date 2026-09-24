@@ -199,6 +199,13 @@ body.stage-ao-vivo #ui-right:hover,
 body.stage-ao-vivo #players:hover,
 body.stage-ao-vivo #hotbar:hover { opacity: 1; }
 
+/* 0.4.1: com a cena no ar a hotbar some de todo (a barra da direita recolhe em JS).
+   Não fica «pointer-events: none»: passar o rato por onde ela está trá-la de volta,
+   para o mestre nunca ficar sem as macros. */
+body.stage-ao-vivo.stage-recolher #hotbar { opacity: 0; transition: opacity 400ms var(--stage-curva); }
+body.stage-ao-vivo.stage-recolher #hotbar:hover,
+body.stage-ao-vivo.stage-recolher #hotbar:focus-within { opacity: 1; }
+
 /* Com a cena no ar, o cartaz gigante do «jogo em pausa» não aparece a meio da
    conversa: o mapa está escondido e a folha do palco já apanha todos os cliques,
    por isso a pausa só diz respeito ao mapa. O mestre continua a vê-la na marca. */
