@@ -200,7 +200,7 @@ const escalaAntes = palco().elenco.find(x => x.id === primeira).escala;
 focada.dispatchEvent(new WheelEvent("wheel", { bubbles: true, deltaY: -120, cancelable: true }));
 await espera(400);
 eIgual("a roda sobe em proporção, sem o bónus do foco",
-  palco().elenco.find(x => x.id === primeira).escala, escalaPorRoda(escalaAntes, -120));
+  palco().elenco.find(x => x.id === primeira).escala, Math.round(escalaPorRoda(escalaAntes, -120) * 100) / 100);   // grava-se com 2 casas
 
 // 3. espelhar vira a figura, não o nome
 const { espelharPersonagem } = await import("../../scripts/dados.js");
