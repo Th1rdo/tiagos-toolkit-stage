@@ -1,4 +1,4 @@
-import { MODULE_ID, TEMPO, ESCALA, AJUSTE, paiUI, log } from "./const.js";
+import { MODULE_ID, TEMPO, ESCALA, AJUSTE, AURAS, paiUI, log } from "./const.js";
 import {
   palco, moverPersonagem, escalarPersonagem, espelharPersonagem, focarPersonagem,
   removerPersonagem, definirEnquadramento
@@ -6,7 +6,7 @@ import {
 import {
   podeVer, ordenarElenco, estiloDaPersonagem, haFocoNoElenco, escalaValida, fracaoValida,
   escalaPorRoda, pousarNoChao, zonaDeSaida, arrastarFundo, aproximarFundo, estiloDoFundo,
-  enquadramentoValido
+  enquadramentoValido, auraEfetiva
 } from "./logica.js";
 
 /**
@@ -53,6 +53,7 @@ class Palco {
         <img class="stage-fundo-img" alt="" draggable="false">
       </div>
       <div class="stage-elenco"></div>
+      <div class="stage-auras">${Object.keys(AURAS).map(k => `<div class="stage-aura" data-aura="${k}"></div>`).join("")}</div>
       <div class="stage-chao" hidden></div>
       <div class="stage-saida" hidden></div>
       <div class="stage-marca" hidden></div>`;
@@ -107,6 +108,13 @@ class Palco {
     // um arrasto do fundo a meio manda no desenho; a gravação chega depois
     if (!this.#arrasto?.fundo) this.#aplicarEnquadramento(p.enquadramento, p.ajuste);
     this.#encaixar();
+
+    // a aura: a de quem tem o foco, senão a da cena. Uma camada por aura, e só a
+    // certa acesa — assim trocar de uma para outra é um cruzamento, não um corte.
+    const aura = auraEfetiva(p);
+    for (const camada of this.#raiz.querySelectorAll(".stage-aura")) {
+      camada.classList.toggle("stage-aura-ativa", camada.dataset.aura === aura);
+    }
 
     const estado = JSON.stringify(p.elenco);
     if (estado !== this.#estadoAnterior) {

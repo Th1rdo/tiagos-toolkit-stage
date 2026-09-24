@@ -43,6 +43,15 @@ if (!alvo) { console.error("  ✖ o Chrome não abriu"); process.exit(1); }
 const ws = new WebSocket(alvo.webSocketDebuggerUrl);
 await new Promise(r => ws.addEventListener("open", r));
 let id = 0;
+// o que a página disser na consola ou rebentar sem apanhar, fica registado para o relatório
+const registo = [];
+ws.addEventListener("message", (ev) => {
+  const m = JSON.parse(ev.data);
+  if (m.method === "Runtime.exceptionThrown") registo.push("exceção: " + (m.params.exceptionDetails.exception?.description ?? m.params.exceptionDetails.text));
+  if (m.method === "Runtime.consoleAPICalled" && ["error", "warning"].includes(m.params.type))
+    registo.push(`${m.params.type}: ` + m.params.args.map(x => x.value ?? x.description).join(" "));
+});
+ws.send(JSON.stringify({ id: 999999, method: "Runtime.enable" }));
 const avaliar = (expression) => new Promise(r => {
   const meu = ++id;
   ws.addEventListener("message", function f(ev) {
@@ -70,6 +79,7 @@ setTimeout(() => { try { fs.rmSync(perfil, { recursive: true, force: true }); } 
 
 if (!resultados) {
   console.error("  ✖ a bancada não chegou ao fim", erro ?? "");
+  for (const l of registo.slice(0, 12)) console.error("    " + l.slice(0, 400));
   process.exit(1);
 }
 for (const r of resultados) console.log(`  ${r.ok ? "✓" : "✖"} ${r.nome}${r.ok ? "" : ` → ${JSON.stringify(r.obtido)} (esperado ${JSON.stringify(r.esperado)})`}`);

@@ -388,3 +388,117 @@ body.stage-ativo #poi-fio { visibility: hidden; }
 /* a linha «esta imagem serve?» */
 #stage-painel .stage-qualidade { font-size: 11px; color: var(--stage-cinza); line-height: 1.35; }
 #stage-painel .stage-qualidade[data-nivel="pequena"] { color: #E0A85A; }
+
+/* ---------------------------------------------------------------- auras (0.4)
+   Luz que vem das bordas quando a cena — ou quem está a falar — pertence a uma das
+   forças de Santa Graça. Uma camada por aura; trocar é um cruzamento de 1,4 s.
+   A luz soma-se à imagem («screen»): parece vir de fora do quadro. Manõ é o
+   contrário — escuridão que avança das bordas. A respiração é de escala, para
+   não brigar com a transição de opacidade. */
+.stage-auras { position: absolute; inset: 0; pointer-events: none; z-index: 40; overflow: hidden; }
+.stage-aura {
+  position: absolute; inset: -2%;
+  --stage-aura: #ffffff;
+  background: radial-gradient(ellipse 88% 84% at 50% 50%,
+    transparent 66%, color-mix(in srgb, var(--stage-aura) 22%, transparent) 86%,
+    color-mix(in srgb, var(--stage-aura) 58%, transparent) 100%);
+  box-shadow: inset 0 0 110px color-mix(in srgb, var(--stage-aura) 48%, transparent);
+  mix-blend-mode: screen;
+  opacity: 0;
+  transition: opacity 1400ms var(--stage-curva);
+  will-change: opacity, transform;
+}
+.stage-aura.stage-aura-ativa { opacity: 1; animation: stage-respirar 7s ease-in-out infinite; }
+@keyframes stage-respirar {
+  0%, 100% { transform: scale(1); }
+  50%      { transform: scale(1.035); }
+}
+.stage-aura[data-aura="kuaa"]  { --stage-aura: #F2C14E; }
+.stage-aura[data-aura="tupa"]  { --stage-aura: #9D4EDD; }
+.stage-aura[data-aura="graca"] { --stage-aura: #C4161C; }
+.stage-aura[data-aura="mano"] {
+  mix-blend-mode: normal;
+  background: radial-gradient(ellipse 80% 74% at 50% 50%, transparent 42%, rgba(0, 0, 0, 0.55) 75%, rgba(0, 0, 0, 0.92) 100%);
+  box-shadow: inset 0 0 220px rgba(0, 0, 0, 0.85);
+}
+@media (prefers-reduced-motion: reduce) { .stage-aura.stage-aura-ativa { animation: none; } }
+
+/* ---------------------------------------------------------------- painel: cenas (0.4) */
+.stage-seccao-cenas { padding-bottom: 6px; }
+#stage-painel { width: 344px; }
+.stage-linha-rotulo { display: flex; align-items: center; gap: 8px; justify-content: space-between; }
+#stage-painel .stage-procura {
+  flex: 1; max-width: 180px; height: 24px; min-height: 0; font-size: 12px; padding: 2px 8px;
+  background: rgba(242, 240, 234, 0.05); border: 1px solid var(--stage-fio); color: var(--stage-tinta); border-radius: 2px;
+}
+.stage-faixa {
+  display: flex; gap: 8px; overflow-x: auto; padding: 2px 2px 8px;
+  scrollbar-width: thin; scroll-snap-type: x proximity;
+}
+.stage-cartao-cena { flex: 0 0 104px; cursor: pointer; scroll-snap-align: start; }
+.stage-cartao-imagem {
+  position: relative; width: 104px; height: 58px; overflow: hidden;
+  background: #0C0C10; border: 1px solid var(--stage-fio); border-radius: 2px;
+}
+#stage-painel .stage-cartao-imagem img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.stage-cartao-cena:hover .stage-cartao-imagem { border-color: rgba(242, 240, 234, 0.35); }
+.stage-cartao-cena.stage-esta .stage-cartao-imagem { border-color: var(--stage-acento); box-shadow: 0 0 0 1px var(--stage-acento); }
+.stage-cartao-nome {
+  margin-top: 4px; font-size: 11px; color: var(--stage-cinza);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.stage-cartao-cena.stage-esta .stage-cartao-nome { color: var(--stage-tinta); }
+.stage-cartao-nova .stage-cartao-imagem { display: grid; place-items: center; border-style: dashed; background: transparent; }
+.stage-mais { font-size: 22px; color: var(--stage-cinza); line-height: 1; }
+.stage-cartao-nova:hover .stage-mais { color: var(--stage-acento); }
+.stage-sem-imagem { position: absolute; inset: 0; background: repeating-linear-gradient(135deg, #111116 0 6px, #16161c 6px 12px); }
+.stage-selo-ar {
+  position: absolute; left: 4px; top: 4px; padding: 1px 5px;
+  font-family: var(--stage-mono); font-size: 9px; letter-spacing: 0.14em; text-transform: uppercase;
+  color: #fff; background: rgba(192, 57, 43, 0.9);
+}
+.stage-cartao-quantos {
+  position: absolute; right: 4px; bottom: 3px; font-family: var(--stage-mono); font-size: 10px;
+  color: var(--stage-tinta); text-shadow: 0 1px 3px #000;
+}
+.stage-cartao-accoes { position: absolute; right: 2px; top: 2px; display: none; gap: 2px; }
+.stage-cartao-cena:hover .stage-cartao-accoes { display: flex; }
+#stage-painel .stage-cartao-accoes .stage-icone {
+  width: 20px; height: 20px; min-height: 0; padding: 3px; background: rgba(7, 7, 10, 0.78); border-radius: 2px;
+}
+#stage-painel .stage-nome-cena {
+  width: 100%; font-size: 14px; letter-spacing: 0.02em; margin-bottom: 8px;
+  background: transparent; border: 1px solid transparent; border-bottom-color: var(--stage-fio);
+  color: var(--stage-tinta); padding: 4px 2px; border-radius: 0;
+}
+#stage-painel .stage-nome-cena:focus { border-bottom-color: var(--stage-acento); outline: none; }
+
+/* ---------------------------------------------------------------- painel: auras */
+.stage-auras-escolha { display: flex; flex-wrap: wrap; gap: 6px; }
+#stage-painel .stage-chip-aura {
+  display: inline-flex; align-items: center; gap: 6px; width: auto; height: 26px; min-height: 0;
+  padding: 0 10px; font-size: 12px; cursor: pointer;
+  background: rgba(242, 240, 234, 0.04); border: 1px solid var(--stage-fio); color: var(--stage-tinta); border-radius: 13px;
+}
+#stage-painel .stage-chip-aura.stage-ativo {
+  border-color: var(--stage-aura-cor); box-shadow: 0 0 10px color-mix(in srgb, var(--stage-aura-cor) 55%, transparent);
+}
+#stage-painel .stage-chip-aura[data-aura=""].stage-ativo { border-color: rgba(242, 240, 234, 0.45); box-shadow: none; }
+.stage-ponto-aura {
+  display: inline-block; width: 10px; height: 10px; border-radius: 50%;
+  border: 1px solid rgba(242, 240, 234, 0.35); background: transparent;
+}
+.stage-ponto-aura[data-aura="kuaa"]  { background: #F2C14E; border-color: #F2C14E; box-shadow: 0 0 6px #F2C14E; }
+.stage-ponto-aura[data-aura="tupa"]  { background: #9D4EDD; border-color: #9D4EDD; box-shadow: 0 0 6px #9D4EDD; }
+.stage-ponto-aura[data-aura="graca"] { background: #C4161C; border-color: #C4161C; box-shadow: 0 0 6px #C4161C; }
+.stage-ponto-aura[data-aura="mano"]  { background: #000; border-color: rgba(242, 240, 234, 0.6); }
+#stage-painel .stage-aura-personagem { width: 22px; }
+
+/* ---------------------------------------------------------------- painel: rodapé */
+#stage-painel .stage-ar[disabled] { opacity: 0.4; cursor: default; }
+.stage-estado-gravacao { margin-top: 6px; text-align: center; font-size: 11px; color: var(--stage-cinza); }
+
+/* o painel nunca passa da janela: o meio rola, o botão de pôr no ar fica sempre à vista */
+#stage-painel { display: flex; flex-direction: column; max-height: calc(100vh - 16px); }
+#stage-painel .stage-corpo { flex: 1 1 auto; min-height: 0; overflow-y: auto; scrollbar-width: thin; }
+#stage-painel .stage-cabecalho, #stage-painel .stage-rodape { flex: 0 0 auto; }

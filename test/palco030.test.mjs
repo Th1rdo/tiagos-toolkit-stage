@@ -130,3 +130,39 @@ test("dez passos pequenos de trackpad somam-se (não se perdem no arredondamento
   for (let i = 0; i < 10; i++) e = escalaPorRoda(e, -3);
   assert.ok(e > 0.515, `ficou em ${e}`);
 });
+
+// ── 0.4: auras ──────────────────────────────────────────────────────
+import { auraValida, auraEfetiva, proximaAura } from "../scripts/logica.js";
+import { AURAS } from "../scripts/const.js";
+
+test("as auras da campanha e as cores combinadas", () => {
+  assert.deepEqual(Object.keys(AURAS), ["kuaa", "tupa", "mano", "graca"]);
+  assert.equal(AURAS.kuaa.cor.toLowerCase().startsWith("#f"), true);   // amarelo
+  assert.equal(auraValida("tupa"), "tupa");
+  assert.equal(auraValida("qualquer"), "");
+  assert.equal(auraValida(undefined), "");
+});
+
+test("sem ninguém com foco, vale a aura da cena", () => {
+  assert.equal(auraEfetiva({ aura: "graca", elenco: [{ id: "a", aura: "kuaa" }] }), "graca");
+});
+
+test("quem tem o foco traz a aura dele", () => {
+  assert.equal(auraEfetiva({ aura: "graca", elenco: [{ id: "a", aura: "kuaa", foco: true }] }), "kuaa");
+});
+
+test("foco sem aura própria deixa a da cena", () => {
+  assert.equal(auraEfetiva({ aura: "mano", elenco: [{ id: "a", foco: true }] }), "mano");
+});
+
+test("o botão da personagem roda pelas auras e volta a nenhuma", () => {
+  const vistas = []; let a = "";
+  for (let i = 0; i < 5; i++) { a = proximaAura(a); vistas.push(a); }
+  assert.deepEqual(vistas, ["kuaa", "tupa", "mano", "graca", ""]);
+});
+
+test("a aura da cena conta como alteração; a do foco não", () => {
+  const base = { fundo: "a.jpg", elenco: [{ id: "x", aura: "kuaa" }] };
+  assert.notEqual(instantaneo({ ...base, aura: "tupa" }), instantaneo(base));
+  assert.equal(instantaneo(base), instantaneo({ ...base, elenco: [{ id: "x", aura: "kuaa", foco: true }] }));
+});

@@ -1,5 +1,5 @@
 import { MODULE_ID, FLAG, AJUSTE } from "./const.js";
-import { novaPersonagem, fracaoValida, escalaValida, ajusteValido, alternarFoco, enquadramentoValido } from "./logica.js";
+import { novaPersonagem, fracaoValida, escalaValida, ajusteValido, alternarFoco, enquadramentoValido, auraValida } from "./logica.js";
 
 /**
  * O palco vive numa flag da **cena**.
@@ -14,11 +14,11 @@ import { novaPersonagem, fracaoValida, escalaValida, ajusteValido, alternarFoco,
 
 export const cenaAtual = () => canvas?.scene ?? game.scenes?.current ?? null;
 
-const VAZIO = { fundo: "", ajuste: AJUSTE.COBRIR, deriva: true, visivel: false, elenco: [], enquadramento: { x: 0.5, y: 0.5, zoom: 1 } };
+const VAZIO = { fundo: "", ajuste: AJUSTE.COBRIR, deriva: true, visivel: false, elenco: [], enquadramento: { x: 0.5, y: 0.5, zoom: 1 }, aura: "" };
 
 export function palco(cena = cenaAtual()) {
   const guardado = cena?.getFlag(MODULE_ID, FLAG);
-  return { ...VAZIO, ...(guardado ?? {}), elenco: guardado?.elenco ?? [], enquadramento: enquadramentoValido(guardado?.enquadramento) };
+  return { ...VAZIO, ...(guardado ?? {}), elenco: guardado?.elenco ?? [], enquadramento: enquadramentoValido(guardado?.enquadramento), aura: auraValida(guardado?.aura) };
 }
 
 function souMestre() {
@@ -27,11 +27,19 @@ function souMestre() {
   return false;
 }
 
+/**
+ * Quem quer saber que o palco foi gravado. A biblioteca inscreve-se aqui para a
+ * gravação automática (0.4): mexer no palco é mexer na cena guardada.
+ */
+const ouvintes = new Set();
+export const aoGravar = (fn) => { ouvintes.add(fn); return () => ouvintes.delete(fn); };
+
 /** Toda a escrita relê o palco antes de gravar: dois cliques não se atropelam. */
 async function gravar(transformar, cena = cenaAtual()) {
   if (!cena || !souMestre()) return null;
   const novo = transformar(palco(cena));
   await cena.setFlag(MODULE_ID, FLAG, novo);
+  for (const fn of ouvintes) { try { fn(novo); } catch (e) { console.error(e); } }
   return novo;
 }
 
@@ -40,6 +48,7 @@ async function gravar(transformar, cena = cenaAtual()) {
 // um fundo novo começa enquadrado ao centro: o enquadramento do anterior não lhe diz respeito
 export const definirFundo = (fundo) => gravar(p => ({ ...p, fundo: fundo ?? "", enquadramento: enquadramentoValido() }));
 export const definirEnquadramento = (e) => gravar(p => ({ ...p, enquadramento: enquadramentoValido(e) }));
+export const definirAura = (aura) => gravar(p => ({ ...p, aura: auraValida(aura) }));
 export const definirAjuste = (ajuste) => gravar(p => ({ ...p, ajuste: ajusteValido(ajuste) }));
 export const definirDeriva = (deriva) => gravar(p => ({ ...p, deriva: !!deriva }));
 
@@ -119,6 +128,7 @@ export const escalarPersonagem = (id, escala) => mexer(id, p => ({ ...p, escala:
 export const espelharPersonagem = (id) => mexer(id, p => ({ ...p, espelhado: !p.espelhado }));
 export const renomearPersonagem = (id, nome) => mexer(id, p => ({ ...p, nome: String(nome ?? "").trim() }));
 export const trocarArte = (id, img) => mexer(id, p => ({ ...p, img: img || p.img }));
+export const definirAuraPersonagem = (id, aura) => mexer(id, p => ({ ...p, aura: auraValida(aura) }));
 
 export const focarPersonagem = (id) => gravar(p => ({ ...p, elenco: alternarFoco(p.elenco, id) }));
 export const removerPersonagem = (id) => gravar(p => ({ ...p, elenco: p.elenco.filter(x => x.id !== id) }));

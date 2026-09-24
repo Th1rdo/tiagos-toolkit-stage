@@ -13,6 +13,9 @@
   addEventListener("error", (e) => { (globalThis.__erros ??= []).push(String(e.error?.stack ?? e.message)); });
 </script>
 <script type="module">
+// um erro a meio mostra-se, em vez de a bancada ficar muda
+addEventListener("error", e => { document.getElementById("saida").textContent = "ERRO: " + (e.error?.stack ?? e.message); });
+addEventListener("unhandledrejection", e => { document.getElementById("saida").textContent = "ERRO: " + (e.reason?.stack ?? e.reason); });
 // ---------------------------------------------------------------- o mínimo do Foundry
 const flags = { "tiagos-toolkit-stage": {} };
 const cena = {
@@ -137,40 +140,60 @@ palcoEmCena.desenhar();
 await espera(600);
 eVerdade("fora do ar, o jogador deixa de ver", raiz().hidden || !raiz().classList.contains("stage-visivel"));
 
-// ------------------------------------------------------------------ biblioteca
+// ------------------------------------------------------------------ biblioteca (0.4: grava sozinha)
 game.user.isGM = true;
 palcoEmCena.compor(true);
 const bib = await import("../../scripts/biblioteca.js");
+const { moverPersonagem, definirAura, definirAuraPersonagem } = await import("../../scripts/dados.js");
+const gravacao = () => espera(520);   // a gravação automática vai 400 ms depois
 
-const cenaGuardada = await bib.guardarComo("Casa de Mero");
-eIgual("guardou a cena com o nome dado", cenaGuardada?.nome, "Casa de Mero");
-eIgual("a cena ficou na biblioteca", bib.cenas().length, 1);
-eIgual("o palco sabe de onde veio", bib.origemAtual(), cenaGuardada.id);
-eVerdade("acabado de guardar, não há alterações", bib.semAlteracoes());
-
-// dar o foco não conta como alterar; mexer conta
+// um palco montado sem cena guardada vira cena à cenaUm alteração
 await focarPersonagem(ana.id);
-eVerdade("dar o foco não marca a cena como alterada", bib.semAlteracoes());
-const guardadoAntes = JSON.stringify(bib.cena(cenaGuardada.id).elenco);
-const { moverPersonagem } = await import("../../scripts/dados.js");
+await gravacao();
+eIgual("o palco montado vira cena guardada sozinho", bib.cenas().length, 1);
+const cenaUm = bib.origemAtual();
+eVerdade("e fica ligado a ela", !!cenaUm);
+eVerdade("o foco nunca vai para a biblioteca", !bib.cena(cenaUm).elenco.some(p => "foco" in p));
+eVerdade("nem o «no ar»", !("visivel" in bib.cena(cenaUm)));
+
+// mexer é gravar
 await moverPersonagem(ana.id, 0.1, 0.9);
-eVerdade("mexer numa personagem marca como alterada", !bib.semAlteracoes());
-eIgual("e o que está guardado NÃO mudou", JSON.stringify(bib.cena(cenaGuardada.id).elenco), guardadoAntes);
+await gravacao();
+eIgual("mexer numa personagem grava na cena guardada", bib.cena(cenaUm).elenco.find(p => p.id === ana.id).x, 0.1);
 
-// carregar repõe a cena guardada e continua a dar para mexer
-await bib.carregar(cenaGuardada.id, { noAr: true });
+// auras: a da cena, e a de quem tem o foco
+await definirAura("kuaa");
+await gravacao();
+eIgual("a aura da cena fica guardada", bib.cena(cenaUm).aura, "kuaa");
 palcoEmCena.desenhar();
-await espera();
-eVerdade("carregar repõe a cena tal como foi guardada", bib.semAlteracoes());
-eVerdade("carregar com play põe no ar", palco().visivel);
-eIgual("ninguém traz foco de trás", palco().elenco.filter(p => p.foco).length, 0);
-await moverPersonagem(palco().elenco[0].id, 0.2, 0.9);
-eVerdade("depois de carregar ainda se mexe", !bib.semAlteracoes());
-eIgual("e a guardada continua intacta", JSON.stringify(bib.cena(cenaGuardada.id).elenco), guardadoAntes);
+eVerdade("a camada de Kuaã acende", raiz().querySelector('.stage-aura[data-aura="kuaa"]').classList.contains("stage-aura-ativa"));
+await definirAuraPersonagem(ana.id, "tupa");
+if (!palco().elenco.find(p => p.id === ana.id)?.foco) await focarPersonagem(ana.id);   // o foco alterna: garantir que é dela
+palcoEmCena.desenhar();
+eVerdade("com o foco em quem é de Tupã, a borda passa a Tupã",
+  raiz().querySelector('.stage-aura[data-aura="tupa"]').classList.contains("stage-aura-ativa")
+  && !raiz().querySelector('.stage-aura[data-aura="kuaa"]').classList.contains("stage-aura-ativa"));
 
-// atualizar a guardada com o que está no palco
-await bib.atualizarGuardada();
-eVerdade("atualizar apanha o que está no palco", bib.semAlteracoes());
+// uma cena nova começa vazia e ligada
+await bib.nova();
+await espera();
+eIgual("o + cria uma segunda cena", bib.cenas().length, 2);
+eVerdade("a nova é a que está no palco", bib.origemAtual() !== cenaUm);
+eIgual("e começa vazia", palco().elenco.length, 0);
+
+// voltar à cenaUm traz tudo como estava
+await bib.carregar(cenaUm);
+await espera();
+eIgual("escolher um cartão repõe a cena", palco().elenco.find(p => p.id === ana.id)?.x, 0.1);
+eIgual("com a aura dela", palco().aura, "kuaa");
+eIgual("ninguém traz foco de trás", palco().elenco.filter(p => p.foco).length, 0);
+
+// escolher um cartão não mexe no «no ar»: no ar continua no ar
+await mostrar(true);
+await bib.carregar(bib.cenas().find(c => c.id !== cenaUm).id);
+eVerdade("trocar de cena no ar continua no ar", palco().visivel);
+await bib.carregar(cenaUm);
+await mostrar(false);
 
 // ------------------------------------------------------------------ regressões
 // Cada um destes reproduz um bug encontrado na revisão da 0.2.0.
@@ -224,6 +247,12 @@ campoNome.dispatchEvent(new Event("input", { bubbles: true }));
 controlo.desenhar();                          // o que acontece quando a gravação volta
 const ativo = document.activeElement;
 eVerdade("depois de redesenhar, o cursor continua no nome", ativo?.dataset?.campo === "nome" && ativo.value === "Mero");
+
+// 0.4: um painel só — cartões das cenas em cima, a escolhida marcada
+const cartoes = document.querySelectorAll("#stage-painel .stage-cartao-cena");
+eIgual("um cartão por cena, mais o +", cartoes.length, bib.cenas().length + 1);
+eIgual("a cena no palco está marcada", document.querySelector("#stage-painel .stage-esta")?.dataset.id, bib.origemAtual());
+eVerdade("não há botões de guardar", !document.querySelector('#stage-painel [data-accao="guardar-cena"], #stage-painel [data-accao="biblioteca"]'));
 
 // 6. pôr no ar numa cena que não é a dos jogadores tem de avisar
 const outra = { ...cena, id: "c2", name: "Outra" };

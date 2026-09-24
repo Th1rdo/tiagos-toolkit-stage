@@ -19,6 +19,19 @@ export const AJUSTE = {
  */
 export const ESCALA = { min: 0.15, max: 1.1, passo: 0.01, padrao: 0.62 };
 
+/**
+ * As auras: luz que vem das bordas do ecrã quando a cena (ou quem está a falar)
+ * pertence a uma das forças de Santa Graça. Cores escolhidas pelo Tiago
+ * (2026-09-24). Manõ é escuridão — luz preta não brilha, por isso é uma sombra
+ * que avança das bordas.
+ */
+export const AURAS = {
+  kuaa:  { cor: "#F2C14E", nome: "Kuaã" },
+  tupa:  { cor: "#9D4EDD", nome: "Tupã" },
+  mano:  { cor: "#000000", nome: "Manõ" },
+  graca: { cor: "#C4161C", nome: "Graça" }
+};
+
 /** Tempos, em ms. Um palco entra devagar — é o oposto de um salto de combate. */
 export const TEMPO = {
   FUNDO: 700,        // o fundo a aparecer

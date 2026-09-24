@@ -1,4 +1,4 @@
-import { AJUSTE, ESCALA } from "./const.js";
+import { AJUSTE, ESCALA, AURAS } from "./const.js";
 
 /**
  * Regras puras — sem `game`, sem DOM. É isto que os testes cobrem.
@@ -19,6 +19,25 @@ export function escalaValida(v) {
 }
 
 export const ajusteValido = (a) => (a === AJUSTE.CONTER ? AJUSTE.CONTER : AJUSTE.COBRIR);
+
+// ------------------------------------------------------------------ auras
+
+export const auraValida = (a) => (Object.hasOwn(AURAS, a) ? a : "");
+
+/**
+ * A aura que se vê: a de quem tem o foco, se tiver uma; senão a da cena.
+ * É isto que faz a borda ficar roxa sozinha quando alguém de Tupã começa a falar.
+ */
+export function auraEfetiva(palco) {
+  const comFoco = (palco?.elenco ?? []).find(p => p.foco);
+  return auraValida(comFoco?.aura) || auraValida(palco?.aura);
+}
+
+/** O botão de aura de cada personagem roda: nenhuma → Kuaã → Tupã → Manõ → Graça → nenhuma. */
+export function proximaAura(atual) {
+  const ordem = ["", ...Object.keys(AURAS)];
+  return ordem[(ordem.indexOf(auraValida(atual)) + 1) % ordem.length];
+}
 
 // ------------------------------------------------------------------ roda do rato
 
@@ -220,6 +239,7 @@ export function instantaneo(p) {
     ajuste: ajusteValido(p?.ajuste),
     deriva: !!p?.deriva,
     enquadramento: enquadramentoValido(p?.enquadramento),
+    aura: auraValida(p?.aura),
     elenco: (p?.elenco ?? []).map(({ foco, ...resto }) => resto)
   });
 }

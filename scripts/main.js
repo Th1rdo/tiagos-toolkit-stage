@@ -3,7 +3,6 @@ import { palco, adicionarPersonagem, aoMudar, alternarVisivel, cenaAtual } from 
 import { palcoEmCena } from "./palco.js";
 import { controlo } from "./controlo.js";
 import { nomeDoFicheiro } from "./logica.js";
-import { Biblioteca } from "./janela.js";
 
 /**
  * Montagem do módulo. O estado vive nas flags da cena; aqui só se ligam os fios.
@@ -12,7 +11,7 @@ import { Biblioteca } from "./janela.js";
 Hooks.once("init", () => {
   game.settings.register(MODULE_ID, "biblioteca", {
     scope: "world", config: false, type: Object, default: { cenas: [] },
-    onChange: () => Biblioteca.atualizarSeAberta()
+    onChange: () => controlo.desenhar()
   });
 
   game.settings.register(MODULE_ID, "escurecerInterface", {
@@ -37,7 +36,7 @@ Hooks.once("init", () => {
     name: "STAGE.Atalho.Biblioteca",
     editable: [{ key: "KeyB", modifiers: ["Control", "Shift"] }],
     restricted: true,
-    onDown: () => { Biblioteca.alternar(); return true; }
+    onDown: () => { controlo.alternar(); return true; }   // 0.4: a biblioteca vive no painel
   });
 
   game.keybindings.register(MODULE_ID, "ar", {
@@ -53,16 +52,6 @@ Hooks.on("getSceneControlButtons", (controls) => {
   if (!game.user.isGM || Array.isArray(controls)) return;
   const grupo = controls.tokens ?? Object.values(controls)[0];
   if (!grupo?.tools) return;
-
-  grupo.tools.stageBiblioteca = {
-    name: "stageBiblioteca",
-    order: Object.keys(grupo.tools).length + 2,
-    title: "STAGE.Biblioteca.Titulo",
-    icon: "fa-solid fa-photo-film",
-    button: true,
-    visible: true,
-    onChange: () => Biblioteca.alternar()
-  };
 
   grupo.tools.stagePalco = {
     name: "stagePalco",
@@ -152,10 +141,8 @@ Hooks.once("ready", () => {
   raiz.addEventListener("dragover", (ev) => { if (game.user.isGM) ev.preventDefault(); });
   raiz.addEventListener("drop", aoLargar);
 
-  Hooks.on(`${MODULE_ID}.biblioteca`, () => Biblioteca.alternar());
-  Hooks.on(`${MODULE_ID}.biblioteca-mudou`, () => Biblioteca.atualizarSeAberta());
 
-  aoMudar(() => { redesenhar(); Biblioteca.atualizarSeAberta(); });
+  aoMudar(() => redesenhar());
   redesenhar();
 
   /** API pública, para macros. */
@@ -163,7 +150,7 @@ Hooks.once("ready", () => {
     mostrar: () => alternarVisivel(),
     painel: () => controlo.alternar(),
     estado: () => palco(),
-    biblioteca: () => Biblioteca.alternar(),
+    biblioteca: () => controlo.abrir(),
     cena: () => cenaAtual()
   };
 
