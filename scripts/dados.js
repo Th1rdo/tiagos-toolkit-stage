@@ -1,5 +1,5 @@
 import { MODULE_ID, FLAG, AJUSTE } from "./const.js";
-import { novaPersonagem, fracaoValida, escalaValida, ajusteValido, alternarFoco, enquadramentoValido, auraValida } from "./logica.js";
+import { novaPersonagem, fracaoValida, escalaValida, ajusteValido, alternarFoco, enquadramentoValido, auraValida, normalizarHoras, comHora } from "./logica.js";
 
 /**
  * O palco vive numa flag da **cena**.
@@ -14,11 +14,14 @@ import { novaPersonagem, fracaoValida, escalaValida, ajusteValido, alternarFoco,
 
 export const cenaAtual = () => canvas?.scene ?? game.scenes?.current ?? null;
 
-const VAZIO = { fundo: "", ajuste: AJUSTE.COBRIR, deriva: true, visivel: false, elenco: [], enquadramento: { x: 0.5, y: 0.5, zoom: 1 }, aura: "" };
+const VAZIO = { fundo: "", ajuste: AJUSTE.COBRIR, deriva: true, visivel: false, elenco: [], enquadramento: { x: 0.5, y: 0.5, zoom: 1 }, aura: "", horas: {}, hora: "", descricao: "" };
 
 export function palco(cena = cenaAtual()) {
   const guardado = cena?.getFlag(MODULE_ID, FLAG);
-  return { ...VAZIO, ...(guardado ?? {}), elenco: guardado?.elenco ?? [], enquadramento: enquadramentoValido(guardado?.enquadramento), aura: auraValida(guardado?.aura) };
+  return {
+    ...VAZIO, ...(guardado ?? {}), elenco: guardado?.elenco ?? [], enquadramento: enquadramentoValido(guardado?.enquadramento),
+    aura: auraValida(guardado?.aura), ...normalizarHoras(guardado), descricao: String(guardado?.descricao ?? "")
+  };
 }
 
 function souMestre() {
@@ -45,8 +48,27 @@ async function gravar(transformar, cena = cenaAtual()) {
 
 // ------------------------------------------------------------------ cenário
 
-// um fundo novo começa enquadrado ao centro: o enquadramento do anterior não lhe diz respeito
-export const definirFundo = (fundo) => gravar(p => ({ ...p, fundo: fundo ?? "", enquadramento: enquadramentoValido() }));
+// um fundo novo começa enquadrado ao centro: o enquadramento do anterior não lhe diz respeito.
+// Se a cena tem horas, o fundo escolhido passa a ser o da hora em que está.
+export const definirFundo = (fundo) => gravar(p => ({
+  ...p, fundo: fundo ?? "", enquadramento: enquadramentoValido(),
+  horas: p.hora && fundo ? { ...p.horas, [p.hora]: fundo } : p.horas
+}));
+
+/**
+ * Dia ↔ noite (0.5). Troca só o fundo: as personagens e o enquadramento ficam — é o
+ * mesmo sítio a outra hora. Se essa hora ainda não tem imagem, `img` dá-lha.
+ */
+export const definirHora = (hora, img = null) => gravar(p => {
+  // a primeira vez que se dá uma hora a uma cena, o fundo atual é a outra hora
+  const outra = hora === "noite" ? "dia" : "noite";
+  const horas = { ...p.horas };
+  if (!p.hora && p.fundo && !horas[outra] && hora !== outra) horas[outra] = p.fundo;
+  if (img) horas[hora] = img;
+  return comHora({ ...p, horas }, hora);
+});
+
+export const definirDescricao = (texto) => gravar(p => ({ ...p, descricao: String(texto ?? "").trim() }));
 export const definirEnquadramento = (e) => gravar(p => ({ ...p, enquadramento: enquadramentoValido(e) }));
 export const definirAura = (aura) => gravar(p => ({ ...p, aura: auraValida(aura) }));
 export const definirAjuste = (ajuste) => gravar(p => ({ ...p, ajuste: ajusteValido(ajuste) }));

@@ -224,6 +224,17 @@ export function nomeDoFicheiro(caminho = "") {
   return base.replace(/\.[^.]+$/, "").replace(/[-_]+/g, " ").trim();
 }
 
+/**
+ * O nome do ficheiro como está no disco, sem extensão: «Casa do cliente - sala - dia».
+ * Ao contrário de `nomeDoFicheiro`, mantém os hífenes — é o «nome técnico» da galeria e é
+ * o que separa o sítio da hora.
+ */
+export function nomeCru(caminho = "") {
+  let base = String(caminho).split(/[?#]/)[0].split("/").pop() ?? "";
+  try { base = decodeURIComponent(base); } catch { /* % solto no nome */ }
+  return base.replace(/\.[a-z0-9]{2,5}$/i, "").replace(/_+/g, " ").replace(/\s+/g, " ").trim();
+}
+
 // ------------------------------------------------------------------ biblioteca
 
 /**
@@ -234,8 +245,11 @@ export function nomeDoFicheiro(caminho = "") {
  * sempre que o mestre trocasse de interlocutor.
  */
 export function instantaneo(p) {
+  const { horas, hora } = normalizarHoras(p);
   return JSON.stringify({
     fundo: p?.fundo ?? "",
+    horas, hora,
+    descricao: String(p?.descricao ?? "").trim(),
     ajuste: ajusteValido(p?.ajuste),
     deriva: !!p?.deriva,
     enquadramento: enquadramentoValido(p?.enquadramento),
@@ -248,21 +262,110 @@ export const igualAoGuardado = (palco, guardada) => !!guardada && instantaneo(pa
 
 /** O que um cartão da biblioteca mostra. */
 export function resumoDaCena(cena) {
+  const { horas, hora } = normalizarHoras(cena);
   return {
     id: cena?.id,
     nome: (cena?.nome ?? "").trim() || "Sem nome",
     fundo: cena?.fundo ?? "",
-    quantos: (cena?.elenco ?? []).length
+    quantos: (cena?.elenco ?? []).length,
+    // a galeria mostra o nome do ficheiro em letra técnica, como os fundos se chamam no disco
+    ficheiro: nomeCru(cena?.fundo ?? ""),
+    descricao: String(cena?.descricao ?? "").trim(),
+    hora,
+    etiqueta: etiquetaHora(hora),
+    horasDisponiveis: HORAS.filter(h => horas[h])
   };
 }
 
-/** Procura por nome — e também pelo nome de quem está em cena. */
-export function filtrarCenas(cenas = [], termo = "") {
-  const t = termo.trim().toLowerCase();
-  if (!t) return [...cenas];
-  return cenas.filter(c =>
-    (c.nome ?? "").toLowerCase().includes(t) ||
-    (c.elenco ?? []).some(p => (p.nome ?? "").toLowerCase().includes(t)));
+/**
+ * Procura por nome, descrição e nome de quem está em cena; `hora` («dia», «noite»)
+ * deixa só as cenas que têm essa hora — mesmo que estejam guardadas na outra.
+ */
+export function filtrarCenas(cenas = [], termo = "", hora = "") {
+  const t = simples(termo).trim();
+  return cenas.filter(c => {
+    if (hora) {
+      const { horas, hora: atual } = normalizarHoras(c);
+      if (!horas[hora] && atual !== hora) return false;
+    }
+    if (!t) return true;
+    return simples(c.nome).includes(t) || simples(c.descricao).includes(t) ||
+      (c.elenco ?? []).some(p => simples(p.nome).includes(t));
+  });
+}
+
+const simples = (s) => String(s ?? "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+
+// ------------------------------------------------------------------ dia e noite (0.5)
+
+/**
+ * As horas de uma cena. Os fundos do Tiago vêm aos pares — «Boteco do Kokichi – dia»
+ * e «– noite» —, e uma cena é o sítio, não a imagem: o elenco e o enquadramento
+ * ficam quando se troca a hora.
+ */
+export const HORAS = ["dia", "noite"];
+const SINONIMOS = {
+  dia: "dia", day: "dia", diurno: "dia", manha: "dia", "manhã": "dia", tarde: "dia",
+  noite: "noite", night: "noite", noturno: "noite", madrugada: "noite"
+};
+
+export const etiquetaHora = (h) => ({ dia: "DAY", noite: "NIGHT" })[h] ?? "";
+
+/** «Boteco do Kokichi - noite.webp» → { local: "Boteco do Kokichi", hora: "noite" }. */
+export function lerHora(caminho) {
+  const nome = nomeCru(caminho);
+  // a hora é a última palavra, depois de « - », « – », «_», espaço ou entre parênteses
+  const m = /^(.*?)[\s_\-–—(]+([A-Za-zÀ-ÿ]+)\)?\s*$/.exec(nome);
+  const hora = m ? SINONIMOS[simples(m[2])] : undefined;
+  if (!m || !hora || !m[1].trim()) return { local: nome, hora: null };
+  return { local: m[1].replace(/[\s\-–—_]+$/, "").trim(), hora };
+}
+
+/** Uma lista de imagens → cenas por sítio, com as horas juntas. Ordenadas pelo nome do sítio. */
+export function agruparPorLocal(caminhos = []) {
+  const porLocal = new Map();
+  for (const c of caminhos) {
+    if (!eImagem(c)) continue;
+    const { local, hora } = lerHora(c);
+    const chave = simples(local);
+    const g = porLocal.get(chave) ?? { local, horas: {}, semHora: null };
+    if (hora) g.horas[hora] ??= c; else g.semHora ??= c;
+    porLocal.set(chave, g);
+  }
+  return [...porLocal.values()]
+    .map(g => {
+      const hora = HORAS.find(h => g.horas[h]) ?? "";
+      return { local: g.local, horas: g.horas, hora, fundo: hora ? g.horas[hora] : g.semHora };
+    })
+    .sort((a, b) => a.local.localeCompare(b.local, "pt"));
+}
+
+/** As horas de uma cena ou palco, limpas: só as conhecidas, e a atual tem de existir. */
+export function normalizarHoras(c) {
+  const horas = {};
+  for (const h of HORAS) if (typeof c?.horas?.[h] === "string" && c.horas[h]) horas[h] = c.horas[h];
+  const hora = horas[c?.hora] ? c.hora : (HORAS.find(h => horas[h]) ?? "");
+  return { horas, hora };
+}
+
+/** Trocar a hora: muda o fundo para o dessa hora (se houver); nada mais mexe. */
+export function comHora(p, hora) {
+  const { horas } = normalizarHoras(p);
+  if (!horas[hora]) return { ...p };
+  return { ...p, horas, hora, fundo: horas[hora] };
+}
+
+// ------------------------------------------------------------------ pasta de personagens (0.5)
+
+export const eImagem = (c) => /\.(png|jpe?g|webp|gif|avif|svg)(\?.*)?$/i.test(String(c ?? ""));
+
+/** Os retratos de uma pasta, por nome, filtrados pela procura (sem maiúsculas nem acentos). */
+export function procurarRetratos(caminhos = [], termo = "") {
+  const t = simples(termo).trim();
+  return caminhos.filter(eImagem)
+    .map(img => ({ img, nome: nomeDoFicheiro(img) }))
+    .filter(r => !t || simples(r.nome).includes(t))
+    .sort((a, b) => a.nome.localeCompare(b.nome, "pt"));
 }
 
 /** Um nome que não se repete: «Casa de Mero», «Casa de Mero 2»… */

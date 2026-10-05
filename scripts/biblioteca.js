@@ -1,6 +1,6 @@
 import { MODULE_ID } from "./const.js";
 import { palco, cenaAtual, aoGravar } from "./dados.js";
-import { instantaneo, igualAoGuardado, nomeLivre, nomeDoFicheiro, palcoVazio } from "./logica.js";
+import { instantaneo, igualAoGuardado, nomeLivre, nomeDoFicheiro, palcoVazio, comHora } from "./logica.js";
 
 /**
  * A biblioteca de cenas guardadas.
@@ -50,6 +50,7 @@ export async function guardarComo(nome) {
     deriva: p.deriva,
     enquadramento: p.enquadramento,
     aura: p.aura ?? "",
+    horas: p.horas ?? {}, hora: p.hora ?? "", descricao: p.descricao ?? "",
     elenco: (p.elenco ?? []).map(({ foco, ...resto }) => resto),
     criado: Date.now(),
     atualizado: Date.now()
@@ -70,6 +71,7 @@ export async function atualizarGuardada(id = origemAtual()) {
     deriva: p.deriva,
     enquadramento: p.enquadramento,
     aura: p.aura ?? "",
+    horas: p.horas ?? {}, hora: p.hora ?? "", descricao: p.descricao ?? "",
     elenco: (p.elenco ?? []).map(({ foco, ...resto }) => resto),
     atualizado: Date.now()
   } : c)));
@@ -118,14 +120,14 @@ export async function nova() {
   const c = {
     id: foundry.utils.randomID(),
     nome: nomeLivre(cenas(), game.i18n.localize("STAGE.CenaNova")),
-    fundo: "", ajuste: "cobrir", deriva: true, aura: "",
+    fundo: "", ajuste: "cobrir", deriva: true, aura: "", horas: {}, hora: "", descricao: "",
     enquadramento: { x: 0.5, y: 0.5, zoom: 1 }, elenco: [],
     criado: Date.now(), atualizado: Date.now()
   };
   await gravar([...cenas(), c]);
   const visivel = !!palco().visivel;
-  const { fundo, ajuste, deriva, aura, enquadramento, elenco } = c;
-  await cenaFoundry.setFlag(MODULE_ID, "palco", { fundo, ajuste, deriva, aura, enquadramento, elenco, visivel });
+  const { fundo, ajuste, deriva, aura, enquadramento, elenco, horas, hora, descricao } = c;
+  await cenaFoundry.setFlag(MODULE_ID, "palco", { fundo, ajuste, deriva, aura, enquadramento, elenco, visivel, horas, hora, descricao });
   await marcarOrigem(c.id);
   return c;
 }
@@ -138,8 +140,10 @@ export async function nova() {
  * Copia, não referencia: a partir daqui o mestre arrasta, espelha e acrescenta
  * à vontade, e a cena guardada fica como estava até ele mandar atualizá-la.
  */
-export async function carregar(id, { noAr = null } = {}) {
-  const c = cena(id);
+export async function carregar(id, { noAr = null, hora = null } = {}) {
+  // a galeria pode pedir a cena já noutra hora (Dia/Noite no cartão)
+  const guardada = cena(id);
+  const c = guardada && hora ? { ...guardada, ...comHora(guardada, hora) } : guardada;
   const cenaFoundry = cenaAtual();
   if (!c || !cenaFoundry || !game.user.isGM) return null;
 
@@ -149,6 +153,7 @@ export async function carregar(id, { noAr = null } = {}) {
     deriva: c.deriva,
     enquadramento: c.enquadramento ?? { x: 0.5, y: 0.5, zoom: 1 },
     aura: c.aura ?? "",
+    horas: c.horas ?? {}, hora: c.hora ?? "", descricao: c.descricao ?? "",
     // noAr null = fica como estava: clicar num cartão com o palco no ar troca a cena
     // que a mesa vê (com o cruzamento de fundos); fora do ar, só prepara
     visivel: noAr ?? !!palco().visivel,
@@ -157,5 +162,35 @@ export async function carregar(id, { noAr = null } = {}) {
   await marcarOrigem(c.id);
   return c;
 }
+
+/**
+ * Importar uma pasta de fundos (0.5): uma cena por sítio, com o dia e a noite juntos
+ * (`agruparPorLocal`). Um fundo que já está numa cena não volta a entrar — importar a
+ * mesma pasta outra vez só acrescenta o que é novo.
+ */
+export async function importar(grupos = []) {
+  if (!game.user.isGM) return [];
+  const usados = new Set(cenas().flatMap(c => [c.fundo, ...Object.values(c.horas ?? {})]).filter(Boolean));
+  const lista = [...cenas()];
+  const novas = [];
+  for (const g of grupos) {
+    const imagens = [g.fundo, ...Object.values(g.horas ?? {})].filter(Boolean);
+    if (!imagens.length || imagens.every(i => usados.has(i))) continue;
+    const c = {
+      id: foundry.utils.randomID(), nome: nomeLivre(lista, g.local),
+      fundo: g.fundo, ajuste: "cobrir", deriva: true, aura: "",
+      horas: g.horas ?? {}, hora: g.hora ?? "", descricao: "",
+      enquadramento: { x: 0.5, y: 0.5, zoom: 1 }, elenco: [],
+      criado: Date.now(), atualizado: Date.now()
+    };
+    lista.push(c); novas.push(c);
+  }
+  if (novas.length) await gravar(lista);
+  return novas;
+}
+
+/** Mudar a descrição de uma cena guardada sem a pôr no palco (a galeria). */
+export const descrever = (id, descricao) =>
+  gravar(cenas().map(c => (c.id === id ? { ...c, descricao: String(descricao ?? "").trim() } : c)));
 
 export { instantaneo };

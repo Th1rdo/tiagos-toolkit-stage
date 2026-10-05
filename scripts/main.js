@@ -2,6 +2,7 @@ import { MODULE_ID, log } from "./const.js";
 import { palco, adicionarPersonagem, aoMudar, alternarVisivel, cenaAtual } from "./dados.js";
 import { palcoEmCena } from "./palco.js";
 import { controlo } from "./controlo.js";
+import { Galeria } from "./galeria.js";
 import { nomeDoFicheiro } from "./logica.js";
 
 /**
@@ -11,6 +12,12 @@ import { nomeDoFicheiro } from "./logica.js";
 Hooks.once("init", () => {
   game.settings.register(MODULE_ID, "biblioteca", {
     scope: "world", config: false, type: Object, default: { cenas: [] },
+    onChange: () => { controlo.desenhar(); Galeria.redesenhar(); }
+  });
+
+  // a pasta de personagens (0.5): escolhe-se uma vez, o painel mostra os retratos
+  game.settings.register(MODULE_ID, "pastasPersonagens", {
+    scope: "world", config: false, type: Array, default: [],
     onChange: () => controlo.desenhar()
   });
 

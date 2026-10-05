@@ -509,3 +509,97 @@ body.stage-ativo #poi-fio { visibility: hidden; }
 #stage-painel { display: flex; flex-direction: column; max-height: calc(100vh - 16px); }
 #stage-painel .stage-corpo { flex: 1 1 auto; min-height: 0; overflow-y: auto; scrollbar-width: thin; }
 #stage-painel .stage-cabecalho, #stage-painel .stage-rodape { flex: 0 0 auto; }
+
+/* ============================================================================
+   0.5 — galeria de cenas, dia/noite, descrição e pasta de personagens
+   A galeria segue a referência do Tiago: fundos grandes 16:9, o nome do ficheiro
+   em letra técnica dourada com a etiqueta DAY/NIGHT, e uma frase em letra de livro.
+   ========================================================================== */
+
+/* -- janela da galeria (ApplicationV2; os seletores levam o #id: o CSS do Foundry ganha a classes soltas) */
+#stage-galeria .window-content { padding: 0; background: #17171a; overflow: hidden; }
+#stage-galeria .stage-galeria { height: 100%; display: flex; flex-direction: column; min-height: 0; color: var(--stage-tinta); }
+#stage-galeria .stage-galeria-topo {
+  flex: 0 0 auto; display: flex; align-items: center; gap: 10px; padding: 12px 18px;
+  border-bottom: 1px solid var(--stage-fio); background: #121215;
+}
+#stage-galeria .stage-procura { width: 240px; height: 30px; }
+#stage-galeria .stage-espaco { flex: 1; }
+#stage-galeria .stage-filtros { display: flex; gap: 4px; }
+#stage-galeria button.stage-filtro, #stage-galeria button.stage-botao-texto {
+  width: auto; height: 30px; min-height: 0; margin: 0; padding: 0 12px; line-height: 1;
+  font-family: var(--stage-mono); font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase;
+  background: transparent; color: var(--stage-cinza); border: 1px solid var(--stage-fio); border-radius: 3px; cursor: pointer;
+}
+#stage-galeria button.stage-filtro:hover, #stage-galeria button.stage-botao-texto:hover { color: var(--stage-tinta); border-color: rgba(242,240,234,.35); }
+#stage-galeria button.stage-filtro.stage-ativo { color: #17171a; background: var(--stage-acento); border-color: var(--stage-acento); }
+#stage-galeria button.stage-botao-texto:disabled { opacity: .5; cursor: progress; }
+
+#stage-galeria .stage-galeria-grelha {
+  flex: 1 1 auto; min-height: 0; overflow-y: auto; padding: 26px 30px 40px;
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 30px 34px; align-content: start;
+}
+#stage-galeria .stage-galeria-vazia { grid-column: 1 / -1; text-align: center; margin-top: 60px; }
+#stage-galeria .stage-galeria-cartao {
+  cursor: pointer; padding-bottom: 16px; border-bottom: 1px solid var(--stage-fio);
+}
+#stage-galeria .stage-galeria-imagem { position: relative; aspect-ratio: 16 / 9; background: #0c0c0e; overflow: hidden; }
+#stage-galeria .stage-galeria-imagem img {
+  position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;
+  border: none; box-shadow: none; border-radius: 0; max-width: none;
+  transition: transform 500ms var(--stage-curva), filter 300ms var(--stage-curva);
+}
+#stage-galeria .stage-galeria-cartao:hover .stage-galeria-imagem img { transform: scale(1.03); filter: brightness(1.08); }
+#stage-galeria .stage-esta .stage-galeria-imagem { box-shadow: 0 0 0 2px var(--stage-acento); }
+#stage-galeria .stage-galeria-tecnico {
+  margin-top: 14px; font-family: var(--stage-mono); font-size: 12.5px; font-weight: 700; letter-spacing: 0.02em;
+  color: #C9A96A; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+#stage-galeria .stage-galeria-etiqueta { color: var(--stage-cinza); font-weight: 400; letter-spacing: 0.06em; }
+#stage-galeria .stage-galeria-descricao {
+  margin-top: 8px; font-family: Georgia, "Times New Roman", serif; font-size: 17px; line-height: 1.3; color: var(--stage-tinta);
+}
+#stage-galeria .stage-galeria-descricao.stage-sem-descricao { color: var(--stage-cinza); }
+#stage-galeria .stage-galeria-descricao:hover { text-decoration: underline dotted rgba(242,240,234,.35); }
+#stage-galeria .stage-galeria-horas {
+  position: absolute; left: 8px; bottom: 8px; display: flex; gap: 4px; opacity: 0; transition: opacity 160ms ease;
+}
+#stage-galeria .stage-galeria-cartao:hover .stage-galeria-horas { opacity: 1; }
+#stage-galeria button.stage-hora-chip, #stage-painel button.stage-hora {
+  width: auto; height: 24px; min-height: 0; margin: 0; padding: 0 10px; line-height: 1;
+  font-family: var(--stage-mono); font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase;
+  border-radius: 12px; cursor: pointer;
+  background: rgba(10,10,12,.78); color: var(--stage-tinta); border: 1px solid rgba(242,240,234,.25);
+}
+#stage-galeria button.stage-hora-chip.stage-ativo, #stage-painel button.stage-hora.stage-ativo {
+  background: var(--stage-acento); color: #17171a; border-color: var(--stage-acento);
+}
+
+/* -- painel: ver todas, dia/noite, descrição */
+#stage-painel button.stage-ver-todas { margin-left: auto; }
+#stage-painel .stage-horas { display: flex; gap: 4px; margin-top: 6px; }
+#stage-painel button.stage-hora { background: transparent; color: var(--stage-cinza); border-color: var(--stage-fio); }
+#stage-painel button.stage-hora.stage-sem-imagem-hora { border-style: dashed; }
+#stage-painel textarea.stage-descricao {
+  width: 100%; box-sizing: border-box; margin: 6px 0 2px; resize: vertical; min-height: 38px;
+  font-family: Georgia, "Times New Roman", serif; font-size: 13px; line-height: 1.3;
+  background: rgba(0,0,0,.25); color: var(--stage-tinta); border: 1px solid var(--stage-fio); border-radius: 3px; padding: 5px 7px;
+}
+
+/* -- pasta de personagens: grelha de retratos */
+#stage-painel .stage-retratos-cabecalho { display: flex; align-items: center; gap: 4px; margin-top: 10px; }
+#stage-painel .stage-retratos-cabecalho .stage-rotulo { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#stage-painel .stage-procura-retratos { width: 100%; margin: 4px 0; }
+#stage-painel .stage-retratos {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(52px, 1fr)); gap: 5px;
+  max-height: 176px; overflow-y: auto; margin: 6px 0 8px;
+}
+#stage-painel button.stage-retrato {
+  width: auto; height: auto; min-height: 0; aspect-ratio: 3 / 4; margin: 0; padding: 0; overflow: hidden; cursor: grab;
+  background: #0c0c0e; border: 1px solid var(--stage-fio); border-radius: 3px;
+}
+#stage-painel button.stage-retrato:hover { border-color: var(--stage-acento); }
+#stage-painel button.stage-retrato img {
+  width: 100%; height: 100%; object-fit: cover; object-position: 50% 15%;
+  border: none; box-shadow: none; border-radius: 0; max-width: none;
+}

@@ -116,7 +116,9 @@ test("trocar o fundo conta como alterar", () => {
 });
 
 test("o cartão mostra nome, fundo e quantos estão em cena", () => {
-  assert.deepEqual(resumoDaCena(guardada), { id: "g1", nome: "Casa de Mero", fundo: "casa.webp", quantos: 2 });
+  // (0.5: o cartão ganhou campos para a galeria — aqui verificam-se só os de sempre)
+  const { id, nome, fundo, quantos } = resumoDaCena(guardada);
+  assert.deepEqual({ id, nome, fundo, quantos }, { id: "g1", nome: "Casa de Mero", fundo: "casa.webp", quantos: 2 });
   assert.equal(resumoDaCena({}).nome, "Sem nome");
 });
 

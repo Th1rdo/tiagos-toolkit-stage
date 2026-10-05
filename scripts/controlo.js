@@ -2,11 +2,13 @@ import { MODULE_ID, AJUSTE, AURAS, paiUI } from "./const.js";
 import {
   palco, definirFundo, definirAjuste, definirDeriva, alternarVisivel, definirEnquadramento,
   definirAura, definirAuraPersonagem, adicionarPersonagem, removerPersonagem, renomearPersonagem,
-  espelharPersonagem, focarPersonagem
+  espelharPersonagem, focarPersonagem, definirHora, definirDescricao
 } from "./dados.js";
 import { palcoEmCena } from "./palco.js";
-import { nomeDoFicheiro, avaliarFundo, filtrarCenas, resumoDaCena, auraValida, proximaAura, palcoVazio } from "./logica.js";
+import { nomeDoFicheiro, avaliarFundo, filtrarCenas, resumoDaCena, auraValida, proximaAura, palcoVazio, HORAS, procurarRetratos } from "./logica.js";
 import * as bib from "./biblioteca.js";
+import { Galeria } from "./galeria.js";
+import * as retratos from "./retratos.js";
 
 /**
  * O painel do palco — a única janela do módulo (0.4).
@@ -40,6 +42,8 @@ class Controlo {
   #el = null;
   #aberto = false;
   #procura = "";
+  #procuraRetratos = "";
+  #retratos = null;          // imagens da pasta de personagens (lidas uma vez por sessão)
   #temporizador = null;
 
   montar() {
@@ -54,6 +58,12 @@ class Controlo {
     el.addEventListener("change", (ev) => this.#mudou(ev));
     el.addEventListener("input", (ev) => this.#escreveu(ev));
     el.addEventListener("pointerdown", (ev) => { if (ev.target.closest("[data-accao=pegar]")) this.#pegar(ev); });
+    // arrastar um retrato da pasta para o palco põe-no onde se larga (o palco já aceita imagens)
+    el.addEventListener("dragstart", (ev) => {
+      const r = ev.target.closest("[data-retrato]");
+      if (!r) return;
+      ev.dataTransfer.setData("text/plain", JSON.stringify({ type: "Tile", texture: { src: r.dataset.retrato } }));
+    });
 
     const pos = this.#posicaoGuardada();
     el.style.left = `${pos.x}px`;
@@ -192,6 +202,7 @@ class Controlo {
       <section class="stage-seccao stage-seccao-cenas">
         <div class="stage-linha-rotulo">
           <span class="stage-rotulo">${t("STAGE.Cenas")}</span>
+          <button type="button" class="stage-ligacao stage-ver-todas" data-accao="galeria">${t("STAGE.Galeria.VerTodas")}</button>
           ${todas.length > 6 ? `<input type="search" class="stage-procura" data-campo="procura" value="${esc(this.#procura)}"
              placeholder="${t("STAGE.Biblioteca.Procurar")}" spellcheck="false" autocomplete="off">` : ""}
         </div>
@@ -208,6 +219,7 @@ class Controlo {
       <section class="stage-seccao">
         <input type="text" class="stage-nome-cena" data-campo="nome-cena" value="${esc(guardada?.nome ?? "")}"
                placeholder="${t("STAGE.NomeCena")}" ${guardada ? "" : "disabled"}>
+        <textarea class="stage-descricao" data-campo="descricao" rows="2" placeholder="${t("STAGE.Descricao")}">${esc(p.descricao ?? "")}</textarea>
         <div class="stage-linha">
           <button type="button" class="stage-miniatura" data-accao="fundo" aria-label="${t("STAGE.Acoes.EscolherFundo")}">
             ${p.fundo ? `<img src="${esc(p.fundo)}" alt="">` : `<span class="stage-vazio">+</span>`}
@@ -219,6 +231,10 @@ class Controlo {
               <label><input type="radio" name="ajuste" value="${AJUSTE.CONTER}" ${p.ajuste === AJUSTE.CONTER ? "checked" : ""}> ${t("STAGE.Conter")}</label>
               <label><input type="checkbox" data-campo="deriva" ${p.deriva ? "checked" : ""}> ${t("STAGE.Deriva")}</label>
             </div>
+            ${p.fundo ? `<div class="stage-horas" role="group">${HORAS.map(h => `
+              <button type="button" class="stage-hora ${p.hora === h ? "stage-ativo" : ""} ${p.horas?.[h] ? "" : "stage-sem-imagem-hora"}"
+                      data-accao="hora" data-hora="${h}" title="${t(p.horas?.[h] ? `STAGE.Hora.${h}` : "STAGE.Hora.Acrescentar")}">
+                ${h === "dia" ? "☀" : "☾"} ${t(`STAGE.Hora.${h}`)}</button>`).join("")}</div>` : ""}
             ${this.#qualidade(p.fundo)}
             ${p.fundo && p.ajuste !== AJUSTE.CONTER && enquadrado
               ? `<button type="button" class="stage-ligacao" data-accao="repor-enquadramento">${t("STAGE.Acoes.ReporEnquadramento")}</button>` : ""}
@@ -256,6 +272,7 @@ class Controlo {
           </div>`;
         }).join("") : `<div class="stage-dica">${t("STAGE.ElencoVazio")}</div>`}
         ${p.elenco.length ? `<div class="stage-dica">${t("STAGE.Gestos.Personagem")}</div>` : ""}
+        ${this.#htmlRetratos(esc, t)}
         <button type="button" class="stage-adicionar" data-accao="personagem">+ ${t("STAGE.Personagem")}</button>
       </section>` : `
       <section class="stage-seccao">
@@ -270,6 +287,37 @@ class Controlo {
         </button>
         ${ha ? `<div class="stage-estado-gravacao">${t(guardada ? "STAGE.Gravado" : "STAGE.GravaAoMexer")}</div>` : ""}
       </footer>`;
+  }
+
+  /** A pasta de personagens: uma grelha de retratos; clicar põe em cena, arrastar põe onde se larga. */
+  #htmlRetratos(esc, t) {
+    const pastas = retratos.pastas();
+    if (!pastas.length) {
+      return `<button type="button" class="stage-ligacao" data-accao="pasta-personagens">${t("STAGE.Retratos.Escolher")}</button>`;
+    }
+    if (this.#retratos === null) {
+      retratos.imagens().then(l => { this.#retratos = l; this.desenhar(); });
+      this.#retratos = undefined;          // a ler: não pedir outra vez a cada desenho
+    }
+    const lista = procurarRetratos(this.#retratos ?? [], this.#procuraRetratos);
+    const pasta = nomeDoFicheiro(pastas[0].replace(/\/+$/, "")) || pastas[0];
+    return `
+      <div class="stage-retratos-cabecalho">
+        <span class="stage-rotulo" title="${esc(pastas[0])}">${t("STAGE.Retratos.Titulo")} · ${esc(pasta)}</span>
+        <button type="button" class="stage-icone" data-accao="pasta-personagens" title="${t("STAGE.Retratos.Mudar")}">
+          <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 5 L6 5 L7 6 L14 6 L14 13 L2 13 Z"></path></svg></button>
+        <button type="button" class="stage-icone" data-accao="reler-retratos" title="${t("STAGE.Retratos.Reler")}">
+          <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M13 8 A5 5 0 1 1 11 4 M11 1 L11 4 L14 4"></path></svg></button>
+      </div>
+      ${(this.#retratos?.length ?? 0) > 12 ? `<input type="search" class="stage-procura stage-procura-retratos" data-campo="procura-retratos"
+          value="${esc(this.#procuraRetratos)}" placeholder="${t("STAGE.Retratos.Procurar")}" spellcheck="false" autocomplete="off">` : ""}
+      <div class="stage-retratos">
+        ${this.#retratos === undefined ? `<span class="stage-dica">${t("STAGE.Retratos.ALer")}</span>`
+          : lista.length ? lista.map(r => `
+          <button type="button" class="stage-retrato" draggable="true" data-accao="por-retrato" data-retrato="${esc(r.img)}" title="${esc(r.nome)}">
+            <img src="${esc(r.img)}" alt="" loading="lazy" draggable="false"></button>`).join("")
+          : `<span class="stage-dica">${t("STAGE.Retratos.Vazia")}</span>`}
+      </div>`;
   }
 
   // ---------------------------------------------------------------- eventos
@@ -312,6 +360,26 @@ class Controlo {
       case "espelhar": return espelharPersonagem(id);
       case "remover": return removerPersonagem(id);
       case "ar": return alternarVisivel();
+      case "galeria": return Galeria.abrir();
+      case "hora": {
+        const h = botao.dataset.hora;
+        if (palco().horas?.[h]) return definirHora(h);
+        // essa hora ainda não tem imagem: escolhe-se agora, e o fundo atual fica a ser a outra
+        return escolherImagem("", (caminho) => definirHora(h, caminho));
+      }
+      case "pasta-personagens": {
+        const pasta = await retratos.escolherPasta(retratos.pastas()[0] ?? "");
+        if (pasta) { await retratos.definirPasta(pasta); this.#retratos = null; this.desenhar(); }
+        return;
+      }
+      case "reler-retratos":
+        this.#retratos = undefined; this.desenhar();
+        this.#retratos = await retratos.imagens({ forcar: true });
+        return this.desenhar();
+      case "por-retrato": {
+        const img = botao.dataset.retrato;
+        return adicionarPersonagem({ img, nome: nomeDoFicheiro(img) });
+      }
     }
   }
 
@@ -324,6 +392,12 @@ class Controlo {
     const { campo, id } = ev.target.dataset;
     const valor = ev.target.value;
     if (campo === "procura") { this.#procura = valor; return this.desenhar(); }
+    if (campo === "procura-retratos") { this.#procuraRetratos = valor; return this.desenhar(); }
+    if (campo === "descricao") {
+      clearTimeout(this.#temporizador);
+      this.#temporizador = setTimeout(() => definirDescricao(valor), 500);
+      return;
+    }
     if (campo !== "nome" && campo !== "nome-cena") return;
     clearTimeout(this.#temporizador);
     this.#temporizador = setTimeout(() => {

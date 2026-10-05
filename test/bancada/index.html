@@ -44,7 +44,8 @@ globalThis.foundry = {
     escapeHTML: (s) => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c])),
     hasProperty: () => true
   },
-  applications: { api: { DialogV2: { confirm: async () => true } }, apps: { FilePicker: { implementation: class { constructor() {} render() {} } } } }
+  // a galeria (0.5) é uma ApplicationV2: sem esta classe o import do painel rebentava e a bancada encravava
+  applications: { api: { DialogV2: { confirm: async () => true }, ApplicationV2: class { static RENDER_STATES = { NONE: 0 }; state = 0; render() {} close() {} } }, apps: { FilePicker: { implementation: class { constructor() {} render() {} } } } }
 };
 globalThis.canvas = { ready: true, scene: cena, app: { ticker: { maxFPS: 60 } } };
 

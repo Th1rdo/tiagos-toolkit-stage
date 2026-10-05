@@ -139,3 +139,15 @@ game.palco.estado();    // o palco da cena atual
 npm test          # lógica pura + verificação de integridade
 npm run test:dom  # bancada de browser (precisa de Chrome): 41 verificações com a folha de estilos real
 ```
+
+## 0.5 — galeria, dia e noite, pasta de personagens
+
+- **Galeria de cenas** («Ver todas» no painel): fundos grandes, o nome do ficheiro com a etiqueta **DAY / NIGHT** e
+  uma frase sobre o sítio (clicar na frase edita-a). Procura e filtros Todas / Dia / Noite. Clicar põe a cena no palco.
+- **Importar pasta**: escolher uma pasta de fundos cria uma cena por sítio; «X - dia» e «X - noite» ficam **na mesma
+  cena**. Importar outra vez só acrescenta o que é novo.
+- **Dia · Noite** no painel e no cartão da galeria: troca o fundo e deixa as personagens onde estão. Uma hora sem
+  imagem pede-a (a imagem atual passa a ser a outra hora).
+- **Descrição** de cada cena, no painel.
+- **Pasta de personagens**: escolhe-se uma vez; o painel mostra os retratos. Clicar põe em cena; arrastar para o
+  palco põe onde se larga. Procura quando há muitos.
